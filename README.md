@@ -6,7 +6,7 @@ A handy .NET tool that bridges PowerShell scripts with Model Context Protocol (M
 
 ### Motivation
 
-Modern AI assistants need access to powerful tools and automation capabilities to be truly useful. PowerShell provides extensive system management and automation capabilities, but there hasn't been an easy way to expose these capabilities to AI assistants in a standardized manner. CommandR solves this problem by providing a bridge between PowerShell scripts and the Model Context Protocol (MCP), allowing AI assistants to discover, understand, and execute PowerShell-based tools.
+Modern AI agents need access to powerful tools and automation capabilities to be truly useful. PowerShell provides extensive system management and automation capabilities, but there hasn't been an easy way to expose these capabilities to AI assistants in a standardized manner. CommandR solves this problem by providing a bridge between PowerShell scripts and the Model Context Protocol (MCP), allowing AI assistants to discover, understand, and execute PowerShell-based tools.
 
 ### Description
 
