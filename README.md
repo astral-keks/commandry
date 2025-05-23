@@ -10,7 +10,7 @@ Modern AI assistants need access to powerful tools and automation capabilities t
 
 ### Description
 
-CommandR is a .NET-based framework that:
+CommandR is a .NET-based tool that:
 
 - **Discovers PowerShell Scripts**: Automatically scans directories for `.ps1` files and converts them into MCP tools
 - **Extracts Metadata**: Parses PowerShell comment-based help and parameter attributes to generate rich tool descriptions
