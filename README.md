@@ -124,30 +124,41 @@ CommandR automatically discovers PowerShell scripts (`.ps1` files) in the specif
 
 To create PowerShell scripts that work optimally with CommandR, follow these guidelines:
 
-#### 1. Use Comment-Based Help
+#### 1. Create `.ps1` Script File Following Naming Conventions
+
+Since CommandR derives the MCP tool name directly from the PowerShell script filename (without the `.ps1` extension), follow these naming conventions to ensure compatibility:
+
+**Naming Requirements:**
+- **Start with a letter or underscore**: Tool names cannot begin with numbers
+- **Use only alphanumeric characters, hyphens, and underscores**: Avoid spaces and special characters
+- **Keep names descriptive but concise**: 2-4 words that clearly indicate the tool's purpose
+
+**Recommended Naming Patterns:**
+- Use **kebab-case**: `get-file-info.ps1`, `deploy-website.ps1`, `backup-database.ps1`
+- Use **snake_case**: `get_file_info.ps1`, `deploy_website.ps1`, `backup_database.ps1`
+- Use **camelCase**: `getFileInfo.ps1`, `deployWebsite.ps1`, `backupDatabase.ps1`
+
+#### 2. Use Comment-Based Help
 
 Include a comment-based help block at the beginning of your script to provide rich metadata:
 
 ```powershell
 <#
-.SYNOPSIS
-Brief description of what the script does
+.DESCRIPTION (required)
+This description enables AI models to comprehend the tool's functionality and appropriate usage scenarios. It must be clear, brief, and provide an accurate explanation of the tool's intended purpose and capabilities. AI models are generally provided with this description to assist them in deciding whether and how to utilize the tool in response to user queries.
 
-.DESCRIPTION
-Detailed description of the script's functionality and purpose
+.SYNOPSIS (optional)
+The title offers a more explanatory and human-readable label for the tool compared to its programmatic identifier. It serves display functions and enables users to quickly grasp the tool's function and purpose.
+In contrast to the tool name (which adheres to programming naming standards), the title may contain spaces, special symbols, and can be written in a more conversational, natural language format.
 
-.PARAMETER ParamName
-Description of the parameter
-
-.NOTES
-Additional metadata in key:value format:
+.NOTES (optional)
 IdempotentHint: true
 ReadOnlyHint: false
 DestructiveHint: false
 #>
 ```
 
-#### 2. Define Parameters Properly
+#### 3. Define Parameters Properly
 
 Use proper PowerShell parameter syntax with attributes:
 
@@ -164,7 +175,7 @@ param(
 )
 ```
 
-#### 3. Parameter Type Support
+#### 4. Parameter Type Support
 
 CommandR supports automatic conversion between MCP JSON types and PowerShell types:
 
@@ -175,7 +186,7 @@ CommandR supports automatic conversion between MCP JSON types and PowerShell typ
 - **Array**: Array types and `List<T>` types
 - **Object**: `[object]` and complex types
 
-#### 4. Return Values
+#### 5. Return Values
 
 Scripts can return various types of data that will be converted to MCP content:
 
@@ -194,7 +205,7 @@ Scripts can return various types of data that will be converted to MCP content:
 @("item1", "item2", "item3")
 ```
 
-#### 5. Tool Annotations in Notes
+#### 6. Tool Annotations in Notes
 
 Use the `.NOTES` section to specify MCP tool annotations:
 
@@ -210,7 +221,7 @@ OpenWorldHint: false
 
 These annotations help AI assistants understand how to use your tools safely and effectively.
 
-#### 6. Example Script
+#### 7. Example Script
 
 Here's a complete example of a well-structured PowerShell script for CommandR:
 
@@ -271,4 +282,4 @@ try {
 catch {
     throw "Error scanning directory: $($_.Exception.Message)"
 }
-```
+``` 
