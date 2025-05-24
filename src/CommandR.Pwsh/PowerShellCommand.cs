@@ -16,7 +16,7 @@ namespace CommandR
 
         public override async Task ExecuteAsync(CancellationToken cancellation)
         {
-            using PowerShell pwsh = new(runspace);
+            using PowerShell pwsh = new(runspace, Logger);
 
             List<object?> results = [];
             await foreach (var result in pwsh.RunScriptAsync(script, Parameters))
@@ -30,7 +30,7 @@ namespace CommandR
 
         public override async Task<CommandMetadata> DescribeAsync(CancellationToken cancellation)
         {
-            using PowerShell pwsh = new(runspace);
+            using PowerShell pwsh = new(runspace, Logger);
 
             CommandMetadata commandMetadata = new()
             {

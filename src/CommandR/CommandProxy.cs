@@ -1,4 +1,5 @@
 ﻿using CommandR.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,12 @@ namespace CommandR
             protected internal set => InnerCommand.Result = value; 
         }
 
+        public override ILogger? Logger
+        {
+            protected internal get => InnerCommand.Logger;
+            set => InnerCommand.Logger = value;
+        }
+
         public override async Task ExecuteAsync(CancellationToken cancellation)
         {
             await InnerCommand.ExecuteAsync(cancellation);
@@ -39,5 +46,6 @@ namespace CommandR
 
         private Command InnerCommand => CommandHost.GetCommand(_intent) ?? throw new CommandException($"Command {_intent.Command} is was not found");
         private CommandHost CommandHost => _host ?? throw new CommandException($"Command {_intent.Command} is detached");
+
     }
 }

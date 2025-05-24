@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ namespace CommandR
 
         public virtual Dictionary<object, object?> Parameters { get; set; } = [];
         public virtual CommandResult? Result { get; protected internal set; }
+
+        public virtual ILogger? Logger { protected internal get; set; }
 
         public event EventHandler? CanExecuteChanged;
         protected void OnCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);

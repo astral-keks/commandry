@@ -1,4 +1,5 @@
 ﻿using CommandR.Hosting;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol.Types;
 using ModelContextProtocol.Server;
 using System.Collections;
@@ -47,7 +48,7 @@ namespace CommandR.Mcp.Tools
             return result;
         }
 
-        public async ValueTask<CallToolResponse> CallToolAsync(CallToolRequestParams? request, CancellationToken cancellation)
+        public async ValueTask<CallToolResponse> CallToolAsync(CallToolRequestParams? request, ILogger logger, CancellationToken cancellation)
         {
             CallToolResponse result;
 
@@ -62,11 +63,12 @@ namespace CommandR.Mcp.Tools
                     throw new ArgumentException($"Tool {commandName} was not found");
 
                 CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
-
                 command.Parameters = request?.Arguments?.ToParameters(commandMetadata.Schema) ?? [];
-                await command.ExecuteAsync(cancellation);
-                CommandResult? commandResult = command.Result;
+                command.Logger = logger;
 
+                await command.ExecuteAsync(cancellation);
+
+                CommandResult? commandResult = command.Result;
                 if (commandResult?.Error is not null)
                     throw commandResult.Error;
 

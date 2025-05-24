@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,12 @@ namespace CommandR.Hosting
         {
             get => command.Result;
             protected internal set => command.Result = value;
+        }
+
+        public override ILogger? Logger
+        {
+            protected internal get => command.Logger;
+            set => command.Logger = value;
         }
 
         public override Task<CommandMetadata> DescribeAsync(CancellationToken cancellation) => command.DescribeAsync(cancellation);

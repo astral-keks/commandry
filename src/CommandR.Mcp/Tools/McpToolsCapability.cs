@@ -1,5 +1,6 @@
-﻿using CommandR.Hosting;
+﻿using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol.Types;
+using ModelContextProtocol.Server;
 
 namespace CommandR.Mcp.Tools
 {
@@ -9,8 +10,15 @@ namespace CommandR.Mcp.Tools
         {
             ListChanged = true,
             ToolCollection = controller.ToolMonitor,
-            ListToolsHandler = (request, cancellation) => controller.ListToolsAsync(cancellation),
-            CallToolHandler = (request, cancellation) => controller.CallToolAsync(request.Params, cancellation),
+            ListToolsHandler = (request, cancellation) =>
+            {
+                return controller.ListToolsAsync(cancellation);
+            },
+            CallToolHandler = (request, cancellation) =>
+            {
+                using ILoggerProvider loggerProvider = request.Server.AsClientLoggerProvider();
+                return controller.CallToolAsync(request.Params, loggerProvider.CreateLogger(nameof(McpToolsController)), cancellation);
+            },
         };
     }
 }

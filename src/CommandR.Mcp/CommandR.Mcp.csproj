@@ -18,9 +18,5 @@
     <ProjectReference Include="..\CommandR.Pwsh\CommandR.Pwsh.csproj" />
     <ProjectReference Include="..\CommandR\CommandR.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Primitives\" />
-  </ItemGroup>
     
 </Project>
