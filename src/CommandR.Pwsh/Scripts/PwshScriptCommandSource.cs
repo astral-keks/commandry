@@ -11,19 +11,12 @@ namespace CommandR.Scripts
     public sealed class PwshScriptCommandSource : CommandSource
     {
         private readonly List<DirectoryInfo> _directories;
-        private readonly Runspace _runspace;
+        private readonly PwshRunspace _runspace;
 
         public PwshScriptCommandSource(IEnumerable<DirectoryInfo>? directories = default, ApartmentState apartmentState = ApartmentState.STA)
         {
             _directories = directories?.ToList() ?? [];
-
-            InitialSessionState initialSessionState = InitialSessionState.CreateDefault();
-            initialSessionState.ExecutionPolicy = ExecutionPolicy.RemoteSigned;
-            initialSessionState.ThreadOptions = PSThreadOptions.UseCurrentThread;
-            initialSessionState.ApartmentState = apartmentState;
-
-            _runspace = RunspaceFactory.CreateRunspace(initialSessionState);
-            _runspace.Open();
+            _runspace = new PwshRunspace(apartmentState);
         }
 
         public PwshScriptCommandSource IncludeDirectory(string? commandDirectory) =>
@@ -37,7 +30,7 @@ namespace CommandR.Scripts
 
         public PwshScriptCommandSource DefineVariable(string name, object value)
         {
-            _runspace.SessionStateProxy.SetVariable(name, value);
+            _runspace.SetVariable(name, value);
             return this;
         }
 
