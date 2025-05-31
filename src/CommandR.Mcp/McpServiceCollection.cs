@@ -1,5 +1,6 @@
 ﻿using CommandR.Hosting;
 using CommandR.Mcp.Tools;
+using CommandR.Scripts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CommandR.Mcp
@@ -9,7 +10,7 @@ namespace CommandR.Mcp
         public static IMcpServerBuilder AddCommandHostMcpServer(this IServiceCollection serviceCollection, DirectoryInfo scriptDirectory) =>
             serviceCollection.AddMcpServer(options =>
             {
-                PowerShellCommandSource powerShellCommandSource = new(apartmentState: Thread.CurrentThread.GetApartmentState());
+                PwshScriptCommandSource powerShellCommandSource = new(apartmentState: Thread.CurrentThread.GetApartmentState());
                 powerShellCommandSource.IncludeDirectory(scriptDirectory);
 
                 CommandHost commandHost = new([powerShellCommandSource]);

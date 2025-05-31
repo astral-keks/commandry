@@ -4,7 +4,7 @@ using System.Management.Automation;
 
 namespace CommandR
 {
-    public class PowerShellCommandException : Exception
+    public class PwshException : Exception
     {
         public required List<ErrorRecord> Errors { get; init; }
 

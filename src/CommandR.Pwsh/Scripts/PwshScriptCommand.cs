@@ -8,15 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Management.Automation.Internal;
 
-namespace CommandR
+namespace CommandR.Scripts
 {
-    internal class PowerShellCommand(Runspace runspace, FileInfo script) : Command
+    internal class PwshScriptCommand(Runspace runspace, FileInfo script) : Command
     {
         public override string Name { get; } = Path.GetFileNameWithoutExtension(script.Name);
 
         public override async Task ExecuteAsync(CancellationToken cancellation)
         {
-            using PowerShell pwsh = new(runspace, Logger);
+            using Pwsh pwsh = new(runspace, Logger);
 
             List<object?> results = [];
             await foreach (var result in pwsh.RunScriptAsync(script, Parameters))
@@ -30,7 +30,7 @@ namespace CommandR
 
         public override async Task<CommandMetadata> DescribeAsync(CancellationToken cancellation)
         {
-            using PowerShell pwsh = new(runspace, Logger);
+            using Pwsh pwsh = new(runspace, Logger);
 
             CommandMetadata commandMetadata = new()
             {

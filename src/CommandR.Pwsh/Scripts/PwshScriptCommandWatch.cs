@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace CommandR
+namespace CommandR.Scripts
 {
-    internal class PowerShellCommandWatch : CommandWatch
+    internal class PwshScriptCommandWatch : CommandWatch
     {
         private readonly List<FileSystemWatcher> _watchers;
 
-        public PowerShellCommandWatch(List<DirectoryInfo> directories)
+        public PwshScriptCommandWatch(List<DirectoryInfo> directories)
         {
             _watchers = [.. directories.Select(directory =>
             {

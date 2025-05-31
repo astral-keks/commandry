@@ -10,36 +10,38 @@ using System.Threading.Tasks;
 
 namespace CommandR
 {
-    internal class PowerShell : IDisposable
+    internal class Pwsh : IDisposable
     {
-        private readonly System.Management.Automation.Runspaces.Runspace _runspace;
-        private readonly System.Management.Automation.PowerShell _pwsh;
-        private readonly Microsoft.Extensions.Logging.ILogger? _logger;
+        private readonly Runspace _runspace;
+        private readonly PowerShell _powerShell;
+        private readonly ILogger? _logger;
 
-        public PowerShell(Runspace runspace, ILogger? logger)
+        public ILogger? Logger => _logger;
+
+        public Pwsh(Runspace runspace, ILogger? logger)
         {
             _runspace = runspace;
             _logger = logger;
 
-            _pwsh = System.Management.Automation.PowerShell.Create(runspace);
-            _pwsh.Streams.Verbose.DataAdding += OnVerboseMessage;
-            _pwsh.Streams.Debug.DataAdding += OnDebugMessage;
-            _pwsh.Streams.Information.DataAdding += OnInformationMessage;
-            _pwsh.Streams.Progress.DataAdding += OnProgressMessage;
-            _pwsh.Streams.Warning.DataAdding += OnWarningMessage;
-            _pwsh.Streams.Error.DataAdding += OnErrorMessage;
+            _powerShell = PowerShell.Create(runspace);
+            _powerShell.Streams.Verbose.DataAdding += OnVerboseMessage;
+            _powerShell.Streams.Debug.DataAdding += OnDebugMessage;
+            _powerShell.Streams.Information.DataAdding += OnInformationMessage;
+            _powerShell.Streams.Progress.DataAdding += OnProgressMessage;
+            _powerShell.Streams.Warning.DataAdding += OnWarningMessage;
+            _powerShell.Streams.Error.DataAdding += OnErrorMessage;
         }
 
         public void Dispose()
         {
-            _pwsh.Streams.Verbose.DataAdding -= OnVerboseMessage;
-            _pwsh.Streams.Debug.DataAdding -= OnDebugMessage;
-            _pwsh.Streams.Information.DataAdding -= OnInformationMessage;
-            _pwsh.Streams.Progress.DataAdding -= OnProgressMessage;
-            _pwsh.Streams.Warning.DataAdding -= OnWarningMessage;
-            _pwsh.Streams.Error.DataAdding -= OnErrorMessage;
+            _powerShell.Streams.Verbose.DataAdding -= OnVerboseMessage;
+            _powerShell.Streams.Debug.DataAdding -= OnDebugMessage;
+            _powerShell.Streams.Information.DataAdding -= OnInformationMessage;
+            _powerShell.Streams.Progress.DataAdding -= OnProgressMessage;
+            _powerShell.Streams.Warning.DataAdding -= OnWarningMessage;
+            _powerShell.Streams.Error.DataAdding -= OnErrorMessage;
 
-            _pwsh.Dispose();
+            _powerShell.Dispose();
         }
 
         public async IAsyncEnumerable<object?> RunScriptAsync(FileInfo script, IDictionary<object, object?> parameters)
@@ -49,13 +51,13 @@ namespace CommandR
             {
                 Monitor.Enter(_runspace, ref locked);
 
-                _pwsh.AddCommand(script.FullName);
+                _powerShell.AddCommand(script.FullName);
                 foreach (var parameter in parameters?.AsEnumerable() ?? [])
-                    _pwsh.AddParameter(parameter.Key.ToString(), parameter.Value);
+                    _powerShell.AddParameter(parameter.Key.ToString(), parameter.Value);
 
-                using PSDataCollection<PSObject> results = await _pwsh.InvokeAsync();
-                if (_pwsh.HadErrors)
-                    throw new PowerShellCommandException { Errors = [.. _pwsh.Streams.Error] };
+                using PSDataCollection<PSObject> results = await _powerShell.InvokeAsync();
+                if (_powerShell.HadErrors)
+                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
 
                 foreach (var result in results.Select(result => result.BaseObject))
                     yield return result;
@@ -74,11 +76,11 @@ namespace CommandR
             {
                 Monitor.Enter(_runspace, ref locked);
 
-                using PSDataCollection<PSObject> results = await _pwsh
+                using PSDataCollection<PSObject> results = await _powerShell
                     .AddCommand($"Get-Command").AddArgument(script.FullName)
                     .InvokeAsync();
-                if (_pwsh.HadErrors)
-                    throw new PowerShellCommandException { Errors = [.. _pwsh.Streams.Error] };
+                if (_powerShell.HadErrors)
+                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
 
                 return results
                     .Select(result => result.BaseObject)
@@ -100,12 +102,12 @@ namespace CommandR
         private void OnErrorMessage(object? sender, DataAddingEventArgs e) => OnLogMessage(e.ItemAdded is Exception ? LogLevel.Critical : LogLevel.Error, e.ItemAdded);
         private void OnLogMessage(LogLevel level, object itemAdded)
         {
-            if (_logger is not null)
+            if (Logger is not null)
             {
                 if (itemAdded is Exception exception)
-                    _logger.Log(level, 0, exception, "Unexpected error");
+                    Logger.Log(level, 0, exception, "Unexpected error");
                 else
-                    _logger.Log(level, 0, default, itemAdded.ToString());
+                    Logger.Log(level, 0, default, itemAdded.ToString());
             }
         }
     }

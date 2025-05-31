@@ -6,14 +6,14 @@ using System.Linq;
 using System.Management.Automation.Runspaces;
 using System.Threading;
 
-namespace CommandR
+namespace CommandR.Scripts
 {
-    public sealed class PowerShellCommandSource : CommandSource
+    public sealed class PwshScriptCommandSource : CommandSource
     {
         private readonly List<DirectoryInfo> _directories;
         private readonly Runspace _runspace;
 
-        public PowerShellCommandSource(IEnumerable<DirectoryInfo>? directories = default, ApartmentState apartmentState = ApartmentState.STA)
+        public PwshScriptCommandSource(IEnumerable<DirectoryInfo>? directories = default, ApartmentState apartmentState = ApartmentState.STA)
         {
             _directories = directories?.ToList() ?? [];
 
@@ -26,16 +26,16 @@ namespace CommandR
             _runspace.Open();
         }
 
-        public PowerShellCommandSource IncludeDirectory(string? commandDirectory) =>
+        public PwshScriptCommandSource IncludeDirectory(string? commandDirectory) =>
             IncludeDirectory(commandDirectory is not null ? new DirectoryInfo(commandDirectory) : default);
-        public PowerShellCommandSource IncludeDirectory(DirectoryInfo? commandDirectory)
+        public PwshScriptCommandSource IncludeDirectory(DirectoryInfo? commandDirectory)
         {
             if (commandDirectory is not null)
                 _directories.Add(commandDirectory);
             return this;
         }
 
-        public PowerShellCommandSource DefineVariable(string name, object value)
+        public PwshScriptCommandSource DefineVariable(string name, object value)
         {
             _runspace.SessionStateProxy.SetVariable(name, value);
             return this;
@@ -45,8 +45,8 @@ namespace CommandR
             .SelectMany(directory => directory.EnumerateFiles("*.ps1", SearchOption.AllDirectories))
             .Select(DiscoverCommand);
 
-        private Command DiscoverCommand(FileInfo ps1File) => new PowerShellCommand(_runspace, ps1File);
+        private Command DiscoverCommand(FileInfo ps1File) => new PwshScriptCommand(_runspace, ps1File);
 
-        public override CommandWatch? WatchCommands() => new PowerShellCommandWatch(_directories);
+        public override CommandWatch? WatchCommands() => new PwshScriptCommandWatch(_directories);
     }
 }
