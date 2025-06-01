@@ -13,6 +13,7 @@ Modern AI agents need access to powerful tools and automation capabilities to be
 CommandR is a .NET-based tool that:
 
 - **Discovers PowerShell Scripts**: Automatically scans directories for `.ps1` files and converts them into MCP tools
+- **Supports PowerShell Functions**: Automatically scans directories for `.ps,1` files and converts functions exported by them into MCP tools
 - **Extracts Metadata**: Parses PowerShell comment-based help and parameter attributes to generate rich tool descriptions
 - **Provides MCP Server**: Exposes PowerShell scripts as MCP tools that AI assistants can discover and call
 - **Supports Multiple Transports**: Offers both STDIO and HTTP transport mechanisms for MCP communication
@@ -25,7 +26,7 @@ CommandR is a .NET-based tool that:
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| **Tools** | ✅ | **Fully Supported** - Automatic enumeration of PowerShell scripts as MCP tools with dynamic schema generation, tool execution, result formatting, and comprehensive tool annotations |
+| **Tools** | ✅ | **Fully Supported** - Automatic enumeration of PowerShell scripts and functions as MCP tools with dynamic schema generation, tool execution, result formatting, and comprehensive tool annotations |
 | **Resources** | ❌ | Not yet implemented - File and data resource management |
 | **Prompts** | ❌ | Not yet implemented - Template and prompt management |
 | **Sampling** | ❌ | Not yet implemented - LLM sampling requests |
@@ -35,9 +36,9 @@ CommandR is a .NET-based tool that:
 
 CommandR's Tools implementation includes:
 
-- **Tool Discovery**: Automatic enumeration of available PowerShell scripts as MCP tools
+- **Tool Discovery**: Automatic enumeration of available PowerShell scripts and functions as MCP tools
 - **Dynamic Schema Generation**: Converts PowerShell parameter definitions to JSON Schema
-- **Tool Execution**: Executes PowerShell scripts with parameters provided by MCP clients
+- **Tool Execution**: Executes PowerShell scripts and functions with parameters provided by MCP clients
 - **Result Formatting**: Converts PowerShell output to MCP-compatible content types
 - **Tool Annotations**: Supports MCP tool annotations for better AI assistant understanding:
   - `IdempotentHint`: Indicates if a tool can be safely called multiple times
@@ -55,8 +56,17 @@ Standard input/output transport for direct communication with MCP clients.
 
 **Command Line Usage:**
 ```bash
-# Basic usage
-commandr-mcp-stdio --script-directory <path-to-scripts>
+# Basic usage with directory scanning
+commandr-mcp-stdio --scan-directory <path-to-scripts>
+
+# Scan multiple directories
+commandr-mcp-stdio --scan-directory <path1> --scan-directory <path2>
+
+# Scan PowerShell modules
+commandr-mcp-stdio --scan-module <module-name-or-path>
+
+# Combine directory and module scanning
+commandr-mcp-stdio --scan-directory <path-to-scripts> --scan-module <module-name-or-path>
 
 # Full help
 commandr-mcp-stdio --help
@@ -68,15 +78,18 @@ Description:
   Starts MCP server with STDIO transport.
 
 Options:
-  --script-directory <script-directory> (REQUIRED)  Directory containing PowerShell scripts to be included.
-  --version                                         Show version information
-  -?, -h, --help                                    Show help and usage information
+  --scan-directory <scan-directory>  Directory to scan for PowerShell scripts with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.
+  --scan-module <scan-module>        PowerShell module to scan for PowerShell functions with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.
+  --version                          Show version information
+  -?, -h, --help                     Show help and usage information
 ```
 
 **Features:**
 - Direct stdin/stdout communication
 - Logging redirected to stderr to avoid interference with MCP protocol
 - Suitable for integration with MCP clients that support process-based servers
+- Supports scanning multiple directories and PowerShell modules
+- Automatic discovery of scripts and functions with proper MCP tool metadata
 
 #### 2. HTTP Transport (`CommandR.Mcp.Http`)
 
@@ -84,11 +97,20 @@ HTTP-based transport using Server-Sent Events (SSE) for web-based MCP communicat
 
 **Command Line Usage:**
 ```bash
-# Basic usage (default port 3001)
-commandr-mcp-http --script-directory <path-to-scripts>
+# Basic usage with directory scanning (default port 3001)
+commandr-mcp-http --scan-directory <path-to-scripts>
+
+# Scan multiple directories
+commandr-mcp-http --scan-directory <path1> --scan-directory <path2>
 
 # Custom port
-commandr-mcp-http --script-directory <path-to-scripts> --port 8080
+commandr-mcp-http --scan-directory <path-to-scripts> --port 8080
+
+# Scan PowerShell modules
+commandr-mcp-http --scan-module <module-name-or-path>
+
+# Combine directory and module scanning with custom port
+commandr-mcp-http --scan-directory <path-to-scripts> --scan-module <module-name-or-path> --port 8080
 
 # Full help
 commandr-mcp-http --help
@@ -100,23 +122,26 @@ Description:
   Starts MCP server on `http://localhost:<port>/sse`.
 
 Options:
-  --script-directory <script-directory> (REQUIRED)  Directory containing PowerShell scripts to be included.
-  --port <port>                                     Port to listen on. [default: 3001]
-  --version                                         Show version information
-  -?, -h, --help                                    Show help and usage information
+  --scan-directory <scan-directory>  Directory to scan for PowerShell scripts with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.
+  --scan-module <scan-module>        PowerShell module to scan for PowerShell functions with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.
+  --port <port>                      Port to listen on. [default: 3001]
+  --version                          Show version information
+  -?, -h, --help                     Show help and usage information
 ```
 
 **Features:**
 - HTTP endpoint at `http://localhost:<port>/sse`
 - Server-Sent Events for real-time communication
+- Supports scanning multiple directories and PowerShell modules
+- Automatic discovery of scripts and functions with proper MCP tool metadata
 
 ## PowerShell Integration
 
-### Script Discovery and Execution
+### Script and Function Discovery and Execution
 
-CommandR automatically discovers PowerShell scripts (`.ps1` files) in the specified directory and converts them into MCP tools. Each script becomes a tool with:
+CommandR automatically discovers PowerShell scripts (`.ps1` files) in the specified directory and converts them into MCP tools. It also discovers PowerShell functions defined within `.psm1` files and converts them into MCP tools. Each script and function becomes a tool with:
 
-- **Tool Name**: Derived from the script filename (without `.ps1` extension)
+- **Tool Name**: Derived from the script filename (without `.ps1` extension) or function name or from the Name property defined in .NOTES section of the help block
 - **Parameters**: Extracted from PowerShell parameter definitions
 - **Metadata**: Parsed from comment-based help blocks
 
@@ -146,6 +171,9 @@ Include a comment-based help block at the beginning of your script to provide ri
 <#
 .DESCRIPTION (required)
 This description enables AI models to comprehend the tool's functionality and appropriate usage scenarios. It must be clear, brief, and provide an accurate explanation of the tool's intended purpose and capabilities. AI models are generally provided with this description to assist them in deciding whether and how to utilize the tool in response to user queries.
+
+.ROLE (required)
+MCP tool
 
 .SYNOPSIS (optional)
 The title offers a more explanatory and human-readable label for the tool compared to its programmatic identifier. It serves display functions and enables users to quickly grasp the tool's function and purpose.
@@ -282,4 +310,8 @@ try {
 catch {
     throw "Error scanning directory: $($_.Exception.Message)"
 }
-``` 
+```
+
+### Writing MCP-Compatible PowerShell Functions
+
+The guidelines for writing MCP-compatible PowerShell functions are the same as for scripts.

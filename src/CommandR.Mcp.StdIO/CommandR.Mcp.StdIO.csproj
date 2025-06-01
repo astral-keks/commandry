@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>commandr-mcp-stdio</AssemblyName>
-    <Version>0.0.1-preview.1</Version>
+    <Version>0.0.1-preview.2</Version>
     <RootNamespace>CommandR</RootNamespace>
     <Nullable>enable</Nullable>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>

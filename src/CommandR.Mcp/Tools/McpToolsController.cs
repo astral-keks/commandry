@@ -26,23 +26,25 @@ namespace CommandR.Mcp.Tools
             foreach (var command in _commandHost.GetCommands())
             {
                 CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
-
-                Tool tool = new()
+                if (commandMetadata.HasProperty("Role", "MCP tool"))
                 {
-                    Name = commandMetadata.Name,
-                    Description = commandMetadata.Description,
-                    InputSchema = commandMetadata.Schema.ToJsonSchema(),
-                    Annotations = new()
+                    Tool tool = new()
                     {
-                        Title = commandMetadata.Title ?? commandMetadata.Name,
-                        IdempotentHint = commandMetadata.HasProperty(nameof(ToolAnnotations.IdempotentHint), bool.TrueString),
-                        DestructiveHint = commandMetadata.HasProperty(nameof(ToolAnnotations.DestructiveHint), bool.TrueString),
-                        OpenWorldHint = commandMetadata.HasProperty(nameof(ToolAnnotations.OpenWorldHint), bool.TrueString),
-                        ReadOnlyHint = commandMetadata.HasProperty(nameof(ToolAnnotations.ReadOnlyHint), bool.TrueString)
-                    }
-                };
+                        Name = commandMetadata.GetProperty(nameof(Tool.Name)) ?? commandMetadata.Name,
+                        Description = commandMetadata.Description,
+                        InputSchema = commandMetadata.Schema.ToJsonSchema(),
+                        Annotations = new()
+                        {
+                            Title = commandMetadata.Title ?? commandMetadata.Name,
+                            IdempotentHint = commandMetadata.HasProperty(nameof(ToolAnnotations.IdempotentHint), bool.TrueString),
+                            DestructiveHint = commandMetadata.HasProperty(nameof(ToolAnnotations.DestructiveHint), bool.TrueString),
+                            OpenWorldHint = commandMetadata.HasProperty(nameof(ToolAnnotations.OpenWorldHint), bool.TrueString),
+                            ReadOnlyHint = commandMetadata.HasProperty(nameof(ToolAnnotations.ReadOnlyHint), bool.TrueString)
+                        }
+                    };
 
-                result.Tools.Add(tool);
+                    result.Tools.Add(tool);
+                }
             }
 
             return result;

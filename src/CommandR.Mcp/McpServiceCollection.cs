@@ -1,18 +1,30 @@
-﻿using CommandR.Hosting;
+﻿using CommandR.Functions;
+using CommandR.Hosting;
 using CommandR.Mcp.Tools;
+using CommandR.Scripts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CommandR.Mcp
 {
     public static class McpServiceCollection
     {
-        public static IMcpServerBuilder AddCommandHostMcpServer(this IServiceCollection serviceCollection, DirectoryInfo scriptDirectory) =>
+        public static IMcpServerBuilder AddCommandHostMcpServer(this IServiceCollection serviceCollection, 
+            IEnumerable<DirectoryInfo> scanDirectories, IEnumerable<string> scanModules) =>
             serviceCollection.AddMcpServer(options =>
             {
-                PowerShellCommandSource powerShellCommandSource = new(apartmentState: Thread.CurrentThread.GetApartmentState());
-                powerShellCommandSource.IncludeDirectory(scriptDirectory);
+                PwshRunspace pwshRunspace = new(Thread.CurrentThread.GetApartmentState());
+                PwshScriptCommandSource pwshScriptCommandSource = new(pwshRunspace);
+                PwshFunctionCommandSource pwshFunctionCommandSource = new(pwshRunspace);
 
-                CommandHost commandHost = new([powerShellCommandSource]);
+                foreach (var scanDirectory in scanDirectories)
+                {
+                    pwshScriptCommandSource.IncludeDirectory(scanDirectory);
+                    pwshFunctionCommandSource.IncludeModules(scanDirectory);
+                }
+                foreach (var scanModule in scanModules)
+                    pwshFunctionCommandSource.IncludeModule(scanModule);
+
+                CommandHost commandHost = new([pwshScriptCommandSource, pwshFunctionCommandSource]);
 
                 McpToolsController mcpToolsController = new(commandHost);
 

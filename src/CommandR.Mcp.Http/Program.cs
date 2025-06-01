@@ -9,12 +9,19 @@ RootCommand rootCommand = new()
     Description = "Starts MCP server on `http://localhost:<port>/sse`.",
 };
 
-Option<DirectoryInfo> scriptDirectoryOption = new("--script-directory")
+Option<DirectoryInfo[]> scanDirectoryOption = new("--scan-directory")
 {
-    IsRequired = true,
-    Description = "Directory containing PowerShell scripts to be included.",
+    Arity = ArgumentArity.OneOrMore,
+    Description = "Directory to scan for PowerShell scripts with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.",
 };
-rootCommand.AddOption(scriptDirectoryOption);
+rootCommand.AddOption(scanDirectoryOption);
+
+Option<string[]> moduleNameOption = new("--scan-module")
+{
+    Arity = ArgumentArity.ZeroOrMore,
+    Description = "PowerShell module to scan for PowerShell functions with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.",
+};
+rootCommand.AddOption(moduleNameOption);
 
 Option<int> portOption = new("--port", () => 3001)
 {
@@ -24,11 +31,11 @@ Option<int> portOption = new("--port", () => 3001)
 rootCommand.AddOption(portOption);
 
 
-rootCommand.SetHandler(async (DirectoryInfo scriptDirectory, int port) =>
+rootCommand.SetHandler(async (DirectoryInfo[] scanDirectories, string[] scanModules, int port) =>
 {
     var builder = WebApplication.CreateBuilder(args);
     builder.Services
-        .AddCommandHostMcpServer(scriptDirectory)
+        .AddCommandHostMcpServer(scanDirectories, scanModules)
         .WithHttpTransport();
 
     var app = builder.Build();
@@ -36,7 +43,7 @@ rootCommand.SetHandler(async (DirectoryInfo scriptDirectory, int port) =>
     app.MapMcp();
 
     await app.RunAsync($"http://localhost:{port}");
-}, scriptDirectoryOption, portOption);
+}, scanDirectoryOption, moduleNameOption, portOption);
 
 await rootCommand.InvokeAsync(args);
 
