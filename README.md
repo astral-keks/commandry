@@ -1,4 +1,4 @@
-# CommandR
+# Commandry
 
 A handy .NET tool that bridges PowerShell scripts with Model Context Protocol (MCP) servers, enabling seamless integration between AI assistants and PowerShell-based tools and automation.
 
@@ -6,11 +6,11 @@ A handy .NET tool that bridges PowerShell scripts with Model Context Protocol (M
 
 ### Motivation
 
-Modern AI agents need access to powerful tools and automation capabilities to be truly useful. PowerShell provides extensive system management and automation capabilities, but there hasn't been an easy way to expose these capabilities to AI assistants in a standardized manner. CommandR solves this problem by providing a bridge between PowerShell scripts and the Model Context Protocol (MCP), allowing AI assistants to discover, understand, and execute PowerShell-based tools.
+Modern AI agents need access to powerful tools and automation capabilities to be truly useful. PowerShell provides extensive system management and automation capabilities, but there hasn't been an easy way to expose these capabilities to AI assistants in a standardized manner. Commandry solves this problem by providing a bridge between PowerShell scripts and the Model Context Protocol (MCP), allowing AI assistants to discover, understand, and execute PowerShell-based tools.
 
 ### Description
 
-CommandR is a .NET-based tool that:
+Commandry is a .NET-based tool that:
 
 - **Discovers PowerShell Scripts**: Automatically scans directories for `.ps1` files and converts them into MCP tools
 - **Supports PowerShell Functions**: Automatically scans directories for `.ps,1` files and converts functions exported by them into MCP tools
@@ -34,7 +34,7 @@ CommandR is a .NET-based tool that:
 
 #### Tools Capability Details
 
-CommandR's Tools implementation includes:
+Commandry's Tools implementation includes:
 
 - **Tool Discovery**: Automatic enumeration of available PowerShell scripts and functions as MCP tools
 - **Dynamic Schema Generation**: Converts PowerShell parameter definitions to JSON Schema
@@ -50,26 +50,26 @@ CommandR's Tools implementation includes:
 
 ### Supported MCP Transports
 
-#### 1. STDIO Transport (`CommandR.Mcp.StdIO`)
+#### 1. STDIO Transport (`Commandry.Mcp.StdIO`)
 
 Standard input/output transport for direct communication with MCP clients.
 
 **Command Line Usage:**
 ```bash
 # Basic usage with directory scanning
-commandr-mcp-stdio --scan-directory <path-to-scripts>
+commandry-mcp-stdio --scan-directory <path-to-scripts>
 
 # Scan multiple directories
-commandr-mcp-stdio --scan-directory <path1> --scan-directory <path2>
+commandry-mcp-stdio --scan-directory <path1> --scan-directory <path2>
 
 # Scan PowerShell modules
-commandr-mcp-stdio --scan-module <module-name-or-path>
+commandry-mcp-stdio --scan-module <module-name-or-path>
 
 # Combine directory and module scanning
-commandr-mcp-stdio --scan-directory <path-to-scripts> --scan-module <module-name-or-path>
+commandry-mcp-stdio --scan-directory <path-to-scripts> --scan-module <module-name-or-path>
 
 # Full help
-commandr-mcp-stdio --help
+commandry-mcp-stdio --help
 ```
 
 **Help Output:**
@@ -91,29 +91,29 @@ Options:
 - Supports scanning multiple directories and PowerShell modules
 - Automatic discovery of scripts and functions with proper MCP tool metadata
 
-#### 2. HTTP Transport (`CommandR.Mcp.Http`)
+#### 2. HTTP Transport (`Commandry.Mcp.Http`)
 
 HTTP-based transport using Server-Sent Events (SSE) for web-based MCP communication.
 
 **Command Line Usage:**
 ```bash
 # Basic usage with directory scanning (default port 3001)
-commandr-mcp-http --scan-directory <path-to-scripts>
+commandry-mcp-http --scan-directory <path-to-scripts>
 
 # Scan multiple directories
-commandr-mcp-http --scan-directory <path1> --scan-directory <path2>
+commandry-mcp-http --scan-directory <path1> --scan-directory <path2>
 
 # Custom port
-commandr-mcp-http --scan-directory <path-to-scripts> --port 8080
+commandry-mcp-http --scan-directory <path-to-scripts> --port 8080
 
 # Scan PowerShell modules
-commandr-mcp-http --scan-module <module-name-or-path>
+commandry-mcp-http --scan-module <module-name-or-path>
 
 # Combine directory and module scanning with custom port
-commandr-mcp-http --scan-directory <path-to-scripts> --scan-module <module-name-or-path> --port 8080
+commandry-mcp-http --scan-directory <path-to-scripts> --scan-module <module-name-or-path> --port 8080
 
 # Full help
-commandr-mcp-http --help
+commandry-mcp-http --help
 ```
 
 **Help Output:**
@@ -139,7 +139,7 @@ Options:
 
 ### Script and Function Discovery and Execution
 
-CommandR automatically discovers PowerShell scripts (`.ps1` files) in the specified directory and converts them into MCP tools. It also discovers PowerShell functions defined within `.psm1` files and converts them into MCP tools. Each script and function becomes a tool with:
+Commandry automatically discovers PowerShell scripts (`.ps1` files) in the specified directory and converts them into MCP tools. It also discovers PowerShell functions defined within `.psm1` files and converts them into MCP tools. Each script and function becomes a tool with:
 
 - **Tool Name**: Derived from the script filename (without `.ps1` extension) or function name or from the Name property defined in .NOTES section of the help block
 - **Parameters**: Extracted from PowerShell parameter definitions
@@ -147,11 +147,11 @@ CommandR automatically discovers PowerShell scripts (`.ps1` files) in the specif
 
 ### Writing MCP-Compatible PowerShell Scripts
 
-To create PowerShell scripts that work optimally with CommandR, follow these guidelines:
+To create PowerShell scripts that work optimally with Commandry, follow these guidelines:
 
 #### 1. Create `.ps1` Script File Following Naming Conventions
 
-Since CommandR derives the MCP tool name directly from the PowerShell script filename (without the `.ps1` extension), follow these naming conventions to ensure compatibility:
+Since Commandry derives the MCP tool name directly from the PowerShell script filename (without the `.ps1` extension), follow these naming conventions to ensure compatibility:
 
 **Naming Requirements:**
 - **Start with a letter or underscore**: Tool names cannot begin with numbers
@@ -205,7 +205,7 @@ param(
 
 #### 4. Parameter Type Support
 
-CommandR supports automatic conversion between MCP JSON types and PowerShell types:
+Commandry supports automatic conversion between MCP JSON types and PowerShell types:
 
 - **String**: `[string]` parameters
 - **Integer**: `[int]`, `[long]`, `[short]` parameters  
@@ -251,7 +251,7 @@ These annotations help AI assistants understand how to use your tools safely and
 
 #### 7. Example Script
 
-Here's a complete example of a well-structured PowerShell script for CommandR:
+Here's a complete example of a well-structured PowerShell script for Commandry:
 
 ```powershell
 <#
