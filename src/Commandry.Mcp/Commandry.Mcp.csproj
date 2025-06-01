@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Commandry.Mcp</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.12" />
+    <PackageReference Include="AutoMapper " Version="14.0.0" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Commandry.Pwsh\Commandry.Pwsh.csproj" />
+    <ProjectReference Include="..\Commandry\Commandry.csproj" />
+  </ItemGroup>
+    
+</Project>
