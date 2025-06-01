@@ -1,24 +1,22 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Management.Automation;
-using System.Management.Automation.Internal;
 using System.Management.Automation.Language;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CommandR.Scripts
+namespace CommandR.Functions
 {
-    internal class PwshScriptCommand(PwshRunspace runspace, FileInfo script) : Command
+    internal class PwshFunctionCommand(PwshRunspace runspace, FunctionInfo function) : Command
     {
-        public override string Name { get; } = Path.GetFileNameWithoutExtension(script.Name);
+        public override string Name { get; } = function.Name;
 
         public override async Task ExecuteAsync(CancellationToken cancellation)
         {
             using Pwsh pwsh = runspace.CreatePwsh(Logger);
 
             List<object?> results = [];
-            await foreach (var result in pwsh.InvokeCommandAsync(script.FullName, Parameters))
+            await foreach (var result in pwsh.InvokeCommandAsync(function.Name, Parameters))
                 results.Add(result);
 
             Result = new()
@@ -27,23 +25,22 @@ namespace CommandR.Scripts
             };
         }
 
-        public override async Task<CommandMetadata> DescribeAsync(CancellationToken cancellation)
+        public override Task<CommandMetadata> DescribeAsync(CancellationToken cancellation)
         {
             using Pwsh pwsh = runspace.CreatePwsh(Logger);
+
+            CommentHelpInfo commentHelpInfo = (function?.ScriptBlock.Ast as FunctionDefinitionAst)?.GetHelpContent() ?? new();
 
             CommandMetadata commandMetadata = new()
             {
                 Name = Name
             };
 
-            ExternalScriptInfo? scriptInfo = await pwsh.DescribeCommandAsync<ExternalScriptInfo>(script.FullName);
-            CommentHelpInfo commentHelpInfo = (scriptInfo?.ScriptBlock.Ast as ScriptBlockAst)?.GetHelpContent() ?? new();
-
             commandMetadata.Schema = new()
             {
                 Parameters = [..
-                    scriptInfo?.Parameters?.Values
-                        .Where(parameter => !parameter.IsCommon() || scriptInfo.ScriptContents.Contains($"${parameter.Name}"))
+                    function?.Parameters?.Values
+                        .Where(parameter => !parameter.IsCommon() || function.Definition.Contains($"${parameter.Name}"))
                         .Select(parameter => new CommandSchema.ParameterSchema
                         {
                             Name = parameter.Name,
@@ -65,7 +62,7 @@ namespace CommandR.Scripts
             }
             commandMetadata.SetProperty(nameof(commentHelpInfo.Role), commentHelpInfo.Role);
 
-            return commandMetadata;
+            return Task.FromResult(commandMetadata);
         }
     }
 }

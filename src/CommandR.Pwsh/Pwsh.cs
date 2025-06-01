@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -10,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CommandR
 {
-    internal class Pwsh : IDisposable
+    public class Pwsh : IDisposable
     {
         private readonly Runspace _runspace;
         private readonly PowerShell _powerShell;
@@ -44,14 +43,19 @@ namespace CommandR
             _powerShell.Dispose();
         }
 
-        public async IAsyncEnumerable<object?> RunScriptAsync(FileInfo script, IDictionary<object, object?> parameters)
+        public IEnumerable<CommandInfo> GetCommands(string namePattern, CommandTypes commandTypes)
+        {
+            return _runspace.SessionStateProxy.InvokeCommand.GetCommands(namePattern, commandTypes, nameIsPattern: true);
+        }
+
+        public async IAsyncEnumerable<object?> InvokeCommandAsync(string command, IDictionary<object, object?> parameters)
         {
             bool locked = false;
             try
             {
                 Monitor.Enter(_runspace, ref locked);
 
-                _powerShell.AddCommand(script.FullName);
+                _powerShell.AddCommand(command);
                 foreach (var parameter in parameters?.AsEnumerable() ?? [])
                     _powerShell.AddParameter(parameter.Key.ToString(), parameter.Value);
 
@@ -69,7 +73,8 @@ namespace CommandR
             }
         }
 
-        public async Task<ExternalScriptInfo?> DescribeScriptAsync(FileInfo script)
+        public async Task<TCommandInfo?> DescribeCommandAsync<TCommandInfo>(string command)
+            where TCommandInfo : CommandInfo
         {
             bool locked = false;
             try
@@ -77,14 +82,14 @@ namespace CommandR
                 Monitor.Enter(_runspace, ref locked);
 
                 using PSDataCollection<PSObject> results = await _powerShell
-                    .AddCommand($"Get-Command").AddArgument(script.FullName)
+                    .AddCommand($"Get-Command").AddArgument(command)
                     .InvokeAsync();
                 if (_powerShell.HadErrors)
                     throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
 
                 return results
                     .Select(result => result.BaseObject)
-                    .OfType<ExternalScriptInfo>()
+                    .OfType<TCommandInfo>()
                     .FirstOrDefault();
             }
             finally
