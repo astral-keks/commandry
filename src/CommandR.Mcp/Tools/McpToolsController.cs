@@ -30,7 +30,7 @@ namespace CommandR.Mcp.Tools
                 {
                     Tool tool = new()
                     {
-                        Name = commandMetadata.Name,
+                        Name = commandMetadata.GetProperty(nameof(Tool.Name)) ?? commandMetadata.Name,
                         Description = commandMetadata.Description,
                         InputSchema = commandMetadata.Schema.ToJsonSchema(),
                         Annotations = new()

@@ -12,7 +12,6 @@ RootCommand rootCommand = new()
 
 Option<DirectoryInfo[]> scanDirectoryOption = new("--scan-directory")
 {
-    IsRequired = true,
     Arity = ArgumentArity.OneOrMore,
     Description = "Directory to scan for PowerShell scripts with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.",
 };

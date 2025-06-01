@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
@@ -13,7 +14,7 @@ namespace CommandR.Functions
         public PwshFunctionCommandSource(PwshRunspace runspace)
         {
             _runspace = runspace;
-            _modules = [];
+            _modules = new(StringComparer.OrdinalIgnoreCase);
         }
 
         public void IncludeModules(DirectoryInfo moduleDirectory)
