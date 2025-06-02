@@ -3,6 +3,8 @@ using ModelContextProtocol.Protocol.Types;
 using System.Collections;
 using System.Text.Json;
 using Commandry.Mcp.Tools;
+using Newtonsoft.Json.Schema;
+using Newtonsoft.Json.Schema.Generation;
 
 namespace Commandry.Mcp.Tools;
 
@@ -40,35 +42,20 @@ internal static class McpToolsMapper
 
     public static JsonElement ToJsonSchema(this CommandSchema commandSchema)
     {
-        // Helper to map .NET types to JSON Schema types
-        static string GetJsonSchemaType(Type type)
+        JSchema commandJSchema = new();
+        commandJSchema.Type = JSchemaType.Object;
+
+        JSchemaGenerator jSchemaGenerator = new JSchemaGenerator();
+        foreach (var parameterSchema in commandSchema.Parameters)
         {
-            if (type == typeof(string)) return "string";
-            if (type == typeof(int) || type == typeof(long) || type == typeof(short)) return "integer";
-            if (type == typeof(float) || type == typeof(double) || type == typeof(decimal)) return "number";
-            if (type == typeof(bool)) return "boolean";
-            if (type == typeof(object)) return "object";
-            if (type.IsArray || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) return "array";
-            return "string"; // fallback
+            JSchema parameterJSchema = jSchemaGenerator.Generate(parameterSchema.Type);
+            commandJSchema.Properties.Add(parameterSchema.Name, parameterJSchema);
+
+            if (!parameterSchema.IsOptional)
+                commandJSchema.Required.Add(parameterSchema.Name);
         }
 
-        Dictionary<string, object?> schema = new()
-        {
-            ["type"] = "object",
-            ["properties"] = commandSchema.Parameters.ToDictionary(
-                parameter => parameter.Name,
-                parameter => new Dictionary<string, object?>
-                {
-                    ["type"] = GetJsonSchemaType(parameter.Type),
-                    ["description"] = parameter.Description
-                }
-            ),
-            ["required"] = commandSchema.Parameters
-                .Where(parameter => !parameter.IsOptional)
-                .Select(parameter => parameter.Name).ToList()
-        };
-
-        string json = JsonSerializer.Serialize(schema);
+        string json = commandJSchema.ToString();
         using var doc = JsonDocument.Parse(json);
         return doc.RootElement.Clone();
     }

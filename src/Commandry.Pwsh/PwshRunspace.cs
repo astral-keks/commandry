@@ -22,6 +22,7 @@ namespace Commandry
             _runspace = new(() =>
             {
                 Runspace runspace = RunspaceFactory.CreateRunspace(_initialSessionState);
+                Runspace.DefaultRunspace = runspace;
                 runspace.Open();
                 return runspace;
             });
