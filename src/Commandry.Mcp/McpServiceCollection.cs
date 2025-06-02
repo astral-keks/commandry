@@ -25,6 +25,7 @@ namespace Commandry.Mcp
                     pwshFunctionCommandSource.IncludeModule(scanModule);
 
                 CommandHost commandHost = new([pwshScriptCommandSource, pwshFunctionCommandSource]);
+                pwshRunspace.Open();
 
                 McpToolsController mcpToolsController = new(commandHost);
 

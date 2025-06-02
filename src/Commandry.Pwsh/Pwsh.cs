@@ -63,8 +63,8 @@ namespace Commandry
                 if (_powerShell.HadErrors)
                     throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
 
-                foreach (var result in results.Select(result => result.BaseObject))
-                    yield return result;
+                foreach (var result in results)
+                    yield return result?.BaseObject;
             }
             finally
             {
