@@ -23,20 +23,22 @@ namespace Commandry
             {
                 Runspace runspace = RunspaceFactory.CreateRunspace(_initialSessionState);
                 Runspace.DefaultRunspace = runspace;
-                runspace.Open();
                 return runspace;
             });
         }
 
+        public void Open()
+        {
+            _runspace.Value.Open();
+        }
+
         public void ImportModule(string moduleName)
         {
-            VerifyNotCreated();
             _initialSessionState.ImportPSModule(moduleName);
         }
 
         public void ImportModule(FileInfo moduleFile)
         {
-            VerifyNotCreated();
             _initialSessionState.ImportPSModule(moduleFile.FullName);
         }
 
@@ -48,12 +50,6 @@ namespace Commandry
         public Pwsh CreatePwsh(ILogger? logger = default)
         {
             return new(_runspace.Value, logger);
-        }
-
-        private void VerifyNotCreated()
-        {
-            if (_runspace.IsValueCreated)
-                throw new InvalidRunspaceStateException("Runspace is already created");
         }
     }
 }
