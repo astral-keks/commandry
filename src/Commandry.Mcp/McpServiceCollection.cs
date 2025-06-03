@@ -27,7 +27,8 @@ namespace Commandry.Mcp
                 CommandHost commandHost = new([pwshScriptCommandSource, pwshFunctionCommandSource]);
                 pwshRunspace.Open();
 
-                McpToolsController mcpToolsController = new(commandHost);
+                McpToolsMapper mapper = new(pwshRunspace);
+                McpToolsController mcpToolsController = new(commandHost, mapper);
 
                 options.Capabilities = new()
                 {

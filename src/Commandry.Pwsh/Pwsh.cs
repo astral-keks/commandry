@@ -48,6 +48,21 @@ namespace Commandry
             return _runspace.SessionStateProxy.InvokeCommand.GetCommands(namePattern, commandTypes, nameIsPattern: true);
         }
 
+        public TResult InvokeDelegate<TResult>(Func<TResult> @delegate)
+        {
+            Runspace currentRunspace = Runspace.DefaultRunspace;
+
+            try
+            {
+                Runspace.DefaultRunspace = _runspace;
+                return @delegate();
+            }
+            finally
+            {
+                Runspace.DefaultRunspace = currentRunspace;
+            }
+        }
+
         public async IAsyncEnumerable<object?> InvokeCommandAsync(string command, IDictionary<object, object?> parameters)
         {
             bool locked = false;

@@ -12,19 +12,14 @@ namespace Commandry
         private readonly InitialSessionState _initialSessionState;
         private readonly Lazy<Runspace> _runspace;
 
-        public PwshRunspace(ApartmentState apartmentState = ApartmentState.STA)
+        public PwshRunspace(ApartmentState apartmentState = ApartmentState.MTA)
         {
             _initialSessionState = InitialSessionState.CreateDefault();
             _initialSessionState.ExecutionPolicy = ExecutionPolicy.RemoteSigned;
             _initialSessionState.ThreadOptions = PSThreadOptions.UseCurrentThread;
             _initialSessionState.ApartmentState = apartmentState;
 
-            _runspace = new(() =>
-            {
-                Runspace runspace = RunspaceFactory.CreateRunspace(_initialSessionState);
-                Runspace.DefaultRunspace = runspace;
-                return runspace;
-            });
+            _runspace = new(() => RunspaceFactory.CreateRunspace(_initialSessionState));
         }
 
         public void Open()
