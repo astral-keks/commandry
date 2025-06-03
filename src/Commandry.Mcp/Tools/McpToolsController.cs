@@ -9,12 +9,15 @@ namespace Commandry.Mcp.Tools
     public class McpToolsController
     {
         private readonly CommandHost _commandHost;
+        private readonly McpToolsMapper _toolMapper;
         private readonly McpPrimitiveMonitor<McpServerTool> _toolMonitor = new();
 
-        public McpToolsController(CommandHost commandHost)
+        public McpToolsController(CommandHost commandHost, McpToolsMapper toolMapper)
         {
             _commandHost = commandHost;
             _commandHost.WatchCommands((sender, args) => _toolMonitor.NotifyChanged());
+            
+            _toolMapper = toolMapper;
         }
 
         public McpPrimitiveMonitor<McpServerTool> ToolMonitor => _toolMonitor;
@@ -32,7 +35,7 @@ namespace Commandry.Mcp.Tools
                     {
                         Name = commandMetadata.GetProperty(nameof(Tool.Name)) ?? commandMetadata.Name,
                         Description = commandMetadata.Description,
-                        InputSchema = commandMetadata.Schema.ToJsonSchema(),
+                        InputSchema = _toolMapper.ToJsonSchema(commandMetadata.Schema),
                         Annotations = new()
                         {
                             Title = commandMetadata.Title ?? commandMetadata.Name,
@@ -65,7 +68,7 @@ namespace Commandry.Mcp.Tools
                     throw new ArgumentException($"Tool {commandName} was not found");
 
                 CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
-                command.Parameters = request?.Arguments?.ToParameters(commandMetadata.Schema) ?? [];
+                command.Parameters = _toolMapper.ToParameters(request?.Arguments, commandMetadata.Schema) ?? [];
                 command.Logger = logger;
 
                 await command.ExecuteAsync(cancellation);
@@ -74,20 +77,22 @@ namespace Commandry.Mcp.Tools
                 if (commandResult?.Error is not null)
                     throw commandResult.Error;
 
-                IEnumerable<Content>? results = commandResult?.Records.Select(record =>
-                {
-                    Content content = new();
-
-                    if (record is IDictionary dictionary)
-                        content = dictionary.ToContent();
-                    else
+                IEnumerable<Content>? results = commandResult?.Records
+                    .Where(record =>  record is not null)
+                    .Select(record =>
                     {
-                        content.Text = record?.ToString();
-                        content.Type = "text";
-                    }
+                        Content content = new();
 
-                    return content;
-                });
+                        if (record is IDictionary dictionary)
+                            content = _toolMapper.ToContent(dictionary);
+                        else
+                        {
+                            content.Text = record?.ToString();
+                            content.Type = "text";
+                        }
+
+                        return content;
+                    });
 
                 result = new()
                 {
