@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
-using System.Management.Automation.Internal;
 using System.Management.Automation.Language;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace Commandry.Scripts
             using Pwsh pwsh = runspace.CreatePwsh(Logger);
 
             List<object?> results = [];
-            await foreach (var result in pwsh.InvokeCommandAsync(script.FullName, Parameters))
+            foreach (var result in pwsh.InvokeCommand(script.FullName, Parameters))
                 results.Add(result);
 
             Result = new()
@@ -36,7 +35,7 @@ namespace Commandry.Scripts
                 Name = Name
             };
 
-            ExternalScriptInfo? scriptInfo = await pwsh.DescribeCommandAsync<ExternalScriptInfo>(script.FullName);
+            ExternalScriptInfo? scriptInfo = pwsh.GetCommand<ExternalScriptInfo>(script.FullName);
             CommentHelpInfo commentHelpInfo = (scriptInfo?.ScriptBlock.Ast as ScriptBlockAst)?.GetHelpContent() ?? new();
 
             commandMetadata.Schema = new()

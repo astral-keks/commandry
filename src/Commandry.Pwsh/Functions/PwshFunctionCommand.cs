@@ -16,7 +16,7 @@ namespace Commandry.Functions
             using Pwsh pwsh = runspace.CreatePwsh(Logger);
 
             List<object?> results = [];
-            await foreach (var result in pwsh.InvokeCommandAsync(function.Name, Parameters))
+            foreach (var result in pwsh.InvokeCommand(function.Name, Parameters))
                 results.Add(result);
 
             Result = new()

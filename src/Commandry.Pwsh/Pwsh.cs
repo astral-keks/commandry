@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -43,19 +44,101 @@ namespace Commandry
             _powerShell.Dispose();
         }
 
-        public IEnumerable<CommandInfo> GetCommands(string namePattern, CommandTypes commandTypes)
+        public PSModuleInfo? ImportModule(string moduleNameOrPath)
         {
-            return _runspace.SessionStateProxy.InvokeCommand.GetCommands(namePattern, commandTypes, nameIsPattern: true);
+            PSModuleInfo? result = default;
+
+            Invoke(() =>
+            {
+                result = _powerShell
+                    .AddCommand("Import-Module").AddArgument(moduleNameOrPath).AddParameter("PassThru")
+                    .Invoke()
+                    .Select(result => result.BaseObject)
+                    .OfType<PSModuleInfo>()
+                    .FirstOrDefault();
+            });
+
+            return result;
         }
 
-        public TResult InvokeDelegate<TResult>(Func<TResult> @delegate)
+        public void RemoveModule(string moduleName)
+        {
+            Invoke(() =>
+            {
+                _powerShell
+                    .AddCommand("Remove-Module").AddArgument(moduleName)
+                    .Invoke();
+            });
+        }
+
+        public List<PSModuleInfo> GetModules()
+        {
+            List<PSModuleInfo> results = [];
+            
+            Invoke(() =>
+            {
+                results.AddRange(
+                    _powerShell
+                        .AddCommand("Get-Module")
+                        .Invoke()
+                        .Select(result => result.BaseObject)
+                        .OfType<PSModuleInfo>());
+            });
+
+            return results;
+        }
+
+        public List<object?> InvokeCommand(string command, IDictionary<object, object?> parameters)
+        {
+            List<object?> results = [];
+
+            Invoke(() =>
+            {
+                _powerShell.AddCommand(command);
+                foreach (var parameter in parameters?.AsEnumerable() ?? [])
+                    _powerShell.AddParameter(parameter.Key.ToString(), parameter.Value);
+
+                Collection<PSObject> records = _powerShell.Invoke();
+                if (_powerShell.HadErrors)
+                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
+
+                foreach (var record in records)
+                    results.Add(record?.BaseObject);
+            });
+
+            return results;
+        }
+
+        public TCommandInfo? GetCommand<TCommandInfo>(string command)
+            where TCommandInfo : CommandInfo
+        {
+            TCommandInfo? result = default;
+
+            Invoke(() =>
+            {
+                Collection<PSObject> results = _powerShell
+                    .AddCommand($"Get-Command").AddArgument(command)
+                    .Invoke();
+                if (_powerShell.HadErrors)
+                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
+
+                result = results
+                    .Select(result => result.BaseObject)
+                    .OfType<TCommandInfo>()
+                    .FirstOrDefault();
+            });
+            
+            return result;
+        }
+
+        public TResult WithRunspace<TResult>(Func<TResult> operation)
         {
             Runspace currentRunspace = Runspace.DefaultRunspace;
 
             try
             {
                 Runspace.DefaultRunspace = _runspace;
-                return @delegate();
+                return operation();
             }
             finally
             {
@@ -63,52 +146,18 @@ namespace Commandry
             }
         }
 
-        public async IAsyncEnumerable<object?> InvokeCommandAsync(string command, IDictionary<object, object?> parameters)
+        private void Invoke(Action action)
         {
+            
             bool locked = false;
             try
             {
                 Monitor.Enter(_runspace, ref locked);
-
-                _powerShell.AddCommand(command);
-                foreach (var parameter in parameters?.AsEnumerable() ?? [])
-                    _powerShell.AddParameter(parameter.Key.ToString(), parameter.Value);
-
-                using PSDataCollection<PSObject> results = await _powerShell.InvokeAsync();
-                if (_powerShell.HadErrors)
-                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
-
-                foreach (var result in results)
-                    yield return result?.BaseObject;
+                action();
             }
             finally
             {
-                if (locked)
-                    Monitor.Exit(_runspace);
-            }
-        }
-
-        public async Task<TCommandInfo?> DescribeCommandAsync<TCommandInfo>(string command)
-            where TCommandInfo : CommandInfo
-        {
-            bool locked = false;
-            try
-            {
-                Monitor.Enter(_runspace, ref locked);
-
-                using PSDataCollection<PSObject> results = await _powerShell
-                    .AddCommand($"Get-Command").AddArgument(command)
-                    .InvokeAsync();
-                if (_powerShell.HadErrors)
-                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
-
-                return results
-                    .Select(result => result.BaseObject)
-                    .OfType<TCommandInfo>()
-                    .FirstOrDefault();
-            }
-            finally
-            {
+                _powerShell.Commands.Clear();
                 if (locked)
                     Monitor.Exit(_runspace);
             }
