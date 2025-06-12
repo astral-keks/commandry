@@ -18,7 +18,7 @@ Commandry is a .NET-based tool that:
 - **Provides MCP Server**: Exposes PowerShell scripts as MCP tools that AI assistants can discover and call
 - **Supports Multiple Transports**: Offers both STDIO and HTTP transport mechanisms for MCP communication
 - **Handles Type Conversion**: Automatically converts between MCP JSON parameters and PowerShell types
-- **Real-time Updates**: Monitors script directories for changes and updates tool availability dynamically
+- **Real-time Updates**: Monitors script and module directories for changes and updates tool availability dynamically
 
 ## MCP Support
 
