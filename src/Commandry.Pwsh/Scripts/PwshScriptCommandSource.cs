@@ -20,7 +20,7 @@ namespace Commandry.Scripts
             IncludeDirectory(commandDirectory is not null ? new DirectoryInfo(commandDirectory) : default);
         public PwshScriptCommandSource IncludeDirectory(DirectoryInfo? commandDirectory)
         {
-            if (commandDirectory is not null)
+            if (commandDirectory?.Exists == true)
                 _directories.Add(commandDirectory);
             return this;
         }
@@ -35,6 +35,6 @@ namespace Commandry.Scripts
             .SelectMany(directory => directory.EnumerateFiles("*.ps1", SearchOption.AllDirectories))
             .Select(ps1File => new PwshScriptCommand(_runspace, ps1File));
 
-        public override CommandWatch? WatchCommands() => new PwshScriptCommandWatch(_directories);
+        public override CommandWatch? WatchCommands() => new PwshWatch(_directories.Select(directory => directory.FullName), ["*.ps1"]);
     }
 }

@@ -27,7 +27,7 @@ public class McpToolsMapper
     public Dictionary<object, object?>? ToParameters(IReadOnlyDictionary<string, JsonElement>? arguments, CommandSchema commandSchema)
     {
         using Pwsh pwsh = _runspace.CreatePwsh();
-        return pwsh.InvokeDelegate(() => 
+        return pwsh.WithRunspace(() => 
             arguments
                 ?.Join(commandSchema.Parameters, arg => arg.Key, par => par.Name, (arg, par) => (Argument: arg, Schema: par))
                 .ToDictionary(
@@ -62,6 +62,7 @@ public class McpToolsMapper
         {
             parameterJsonSchemas[parameterSchema.Name] = new JsonSchemaBuilder()
                 .FromType(parameterSchema.Type)
+                .Description(parameterSchema.Description)
                 .Build();
 
             if (!parameterSchema.IsOptional)
