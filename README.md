@@ -13,7 +13,7 @@ Modern AI agents need access to powerful tools and automation capabilities to be
 Commandry is a .NET-based tool that:
 
 - **Discovers PowerShell Scripts**: Automatically scans directories for `.ps1` files and converts them into MCP tools
-- **Supports PowerShell Functions**: Automatically scans directories for `.ps,1` files and converts functions exported by them into MCP tools
+- **Supports PowerShell Functions**: Automatically scans directories for `.psm1` and `.psd1` files and converts functions exported by them into MCP tools
 - **Extracts Metadata**: Parses PowerShell comment-based help and parameter attributes to generate rich tool descriptions
 - **Provides MCP Server**: Exposes PowerShell scripts as MCP tools that AI assistants can discover and call
 - **Supports Multiple Transports**: Offers both STDIO and HTTP transport mechanisms for MCP communication
