@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Protocol;
 using System.CommandLine;
 using System.IO;
 
@@ -13,28 +14,35 @@ RootCommand rootCommand = new()
 Option<DirectoryInfo[]> scanDirectoryOption = new("--scan-directory")
 {
     Arity = ArgumentArity.OneOrMore,
-    Description = "Directory to scan for PowerShell scripts with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.",
+    Description = "Directory to scan for PowerShell scripts.",
 };
 rootCommand.AddOption(scanDirectoryOption);
 
 Option<string[]> moduleNameOption = new("--scan-module")
 {
     Arity = ArgumentArity.ZeroOrMore,
-    Description = "PowerShell module to scan for PowerShell functions with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.",
+    Description = "PowerShell module to scan for PowerShell functions.",
 };
 rootCommand.AddOption(moduleNameOption);
 
+Option<LoggingLevel> logVerbosityOption = new("--log-verbosity", () => LoggingLevel.Info)
+{
+    Arity = ArgumentArity.ZeroOrOne,
+    Description = "Log verbosity.",
+};
+rootCommand.AddOption(logVerbosityOption);
 
-rootCommand.SetHandler(async (DirectoryInfo[] scanDirectories, string[] scanModules) =>
+
+rootCommand.SetHandler(async (DirectoryInfo[] scanDirectories, string[] scanModules, LoggingLevel logVerbosity) =>
 {
     HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
     builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace); // Configure all logs to go to stderr
     builder.Services
-        .AddCommandHostMcpServer(scanDirectories, scanModules)
+        .AddCommandHostMcpServer(scanDirectories, scanModules, logVerbosity)
         .WithStdioServerTransport();
     IHost host = builder.Build();
 
     await host.RunAsync();
-}, scanDirectoryOption, moduleNameOption);
+}, scanDirectoryOption, moduleNameOption, logVerbosityOption);
 
 await rootCommand.InvokeAsync(args);

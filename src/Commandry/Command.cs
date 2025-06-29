@@ -14,6 +14,7 @@ namespace Commandry
         public virtual Dictionary<object, object?> Parameters { get; set; } = [];
         public virtual CommandResult? Result { get; protected internal set; }
 
+        public virtual CommandProgress? Progress { protected internal get; set; }
         public virtual ILogger? Logger { protected internal get; set; }
 
         public event EventHandler? CanExecuteChanged;
@@ -22,9 +23,11 @@ namespace Commandry
         public bool CanExecute(object? parameter) => CanExecute();
         public virtual bool CanExecute() => true;
 
+        public void Execute() => Execute(null);
         public async void Execute(object? parameter) => await ExecuteAsync(CancellationToken.None);
         public abstract Task ExecuteAsync(CancellationToken cancellation);
 
+        public CommandMetadata Describe() => DescribeAsync(CancellationToken.None).GetAwaiter().GetResult();
         public abstract Task<CommandMetadata> DescribeAsync(CancellationToken cancellation);
     }
 }

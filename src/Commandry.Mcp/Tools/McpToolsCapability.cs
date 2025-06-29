@@ -1,24 +1,31 @@
-﻿using Microsoft.Extensions.Logging;
-using ModelContextProtocol.Protocol.Types;
+﻿using Commandry.Hosting;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
 namespace Commandry.Mcp.Tools
 {
-    public static class McpToolsCapability
+    internal static class McpToolsCapability
     {
-        public static ToolsCapability ToToolsCapability(this McpToolsController controller) => new()
+        public static ToolsCapability ToToolsCapability(this CommandHost commandHost, Func<IMcpServer, McpToolsController> toolsController)
         {
-            ListChanged = true,
-            ToolCollection = controller.ToolMonitor,
-            ListToolsHandler = (request, cancellation) =>
+            McpPrimitiveMonitor<McpServerTool> toolMonitor = new();
+            commandHost.WatchCommands((sender, args) => toolMonitor.NotifyChanged());
+
+            return new()
             {
-                return controller.ListToolsAsync(cancellation);
-            },
-            CallToolHandler = (request, cancellation) =>
-            {
-                using ILoggerProvider loggerProvider = request.Server.AsClientLoggerProvider();
-                return controller.CallToolAsync(request.Params, loggerProvider.CreateLogger(nameof(McpToolsController)), cancellation);
-            },
-        };
+                ListChanged = true,
+                ToolCollection = toolMonitor,
+                ListToolsHandler = (request, cancellation) =>
+                {
+                    using McpToolsController controller = toolsController(request.Server);
+                    return controller.ListToolsAsync(cancellation);
+                },
+                CallToolHandler = (request, cancellation) =>
+                {
+                    using McpToolsController controller = toolsController(request.Server);
+                    return controller.CallToolAsync(request.Params, cancellation);
+                },
+            };
+        }
     }
 }

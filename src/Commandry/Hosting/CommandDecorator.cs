@@ -22,6 +22,12 @@ namespace Commandry.Hosting
             protected internal set => command.Result = value;
         }
 
+        public override CommandProgress? Progress
+        {
+            protected internal get => command.Progress;
+            set => command.Progress = value;
+        }
+
         public override ILogger? Logger
         {
             protected internal get => command.Logger;

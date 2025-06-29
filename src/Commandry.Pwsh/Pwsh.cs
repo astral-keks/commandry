@@ -6,7 +6,6 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Commandry
 {
@@ -14,13 +13,13 @@ namespace Commandry
     {
         private readonly Runspace _runspace;
         private readonly PowerShell _powerShell;
+        private readonly PwshTracker? _tracker;
         private readonly ILogger? _logger;
 
-        public ILogger? Logger => _logger;
-
-        public Pwsh(Runspace runspace, ILogger? logger)
+        public Pwsh(Runspace runspace, PwshTracker? tracker, ILogger? logger)
         {
             _runspace = runspace;
+            _tracker = tracker;
             _logger = logger;
 
             _powerShell = PowerShell.Create(runspace);
@@ -74,7 +73,7 @@ namespace Commandry
         public List<PSModuleInfo> GetModules()
         {
             List<PSModuleInfo> results = [];
-            
+
             Invoke(() =>
             {
                 results.AddRange(
@@ -86,6 +85,16 @@ namespace Commandry
             });
 
             return results;
+        }
+
+        public void SetVariable(object variableName, object? variableValue)
+        {
+            Invoke(() =>
+            {
+                _powerShell
+                    .AddCommand("Set-Variable").AddArgument(variableName).AddArgument(variableValue)
+                    .Invoke();
+            });
         }
 
         public List<object?> InvokeCommand(string command, IDictionary<object, object?> parameters)
@@ -127,7 +136,7 @@ namespace Commandry
                     .OfType<TCommandInfo>()
                     .FirstOrDefault();
             });
-            
+
             return result;
         }
 
@@ -148,7 +157,6 @@ namespace Commandry
 
         private void Invoke(Action action)
         {
-            
             bool locked = false;
             try
             {
@@ -166,18 +174,26 @@ namespace Commandry
         private void OnVerboseMessage(object? sender, DataAddingEventArgs e) => OnLogMessage(LogLevel.Trace, e.ItemAdded);
         private void OnDebugMessage(object? sender, DataAddingEventArgs e) => OnLogMessage(LogLevel.Debug, e.ItemAdded);
         private void OnInformationMessage(object? sender, DataAddingEventArgs e) => OnLogMessage(LogLevel.Information, e.ItemAdded);
-        private void OnProgressMessage(object? sender, DataAddingEventArgs e) => OnLogMessage(LogLevel.Information, e.ItemAdded);
         private void OnWarningMessage(object? sender, DataAddingEventArgs e) => OnLogMessage(LogLevel.Warning, e.ItemAdded);
         private void OnErrorMessage(object? sender, DataAddingEventArgs e) => OnLogMessage(e.ItemAdded is Exception ? LogLevel.Critical : LogLevel.Error, e.ItemAdded);
         private void OnLogMessage(LogLevel level, object itemAdded)
         {
-            if (Logger is not null)
+            if (_logger is not null)
             {
                 if (itemAdded is Exception exception)
-                    Logger.Log(level, 0, exception, "Unexpected error");
+                    _logger.Log(level, 0, exception, "Unexpected error");
                 else
-                    Logger.Log(level, 0, default, itemAdded.ToString());
+                    _logger.Log(level, 0, default, itemAdded.ToString());
             }
+        }
+
+        private void OnProgressMessage(object? sender, DataAddingEventArgs e)
+        {
+            if (_tracker is not null && e.ItemAdded is ProgressRecord progress)
+            {
+                _tracker(progress);
+            }
+            OnLogMessage(LogLevel.Information, e.ItemAdded);
         }
     }
 }

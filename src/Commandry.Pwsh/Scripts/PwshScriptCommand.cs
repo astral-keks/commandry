@@ -8,13 +8,16 @@ using System.Threading.Tasks;
 
 namespace Commandry.Scripts
 {
-    internal class PwshScriptCommand(PwshRunspace runspace, FileInfo script) : Command
+    internal class PwshScriptCommand(PwshRunspace runspace, FileInfo script) : PwshCommand
     {
         public override string Name { get; } = Path.GetFileNameWithoutExtension(script.Name);
 
         public override async Task ExecuteAsync(CancellationToken cancellation)
         {
-            using Pwsh pwsh = runspace.CreatePwsh(Logger);
+            using Pwsh pwsh = runspace.CreatePwsh(ReportProgress, Logger);
+
+            foreach (var kv in Parameters)
+                pwsh.SetVariable(kv.Key, kv.Value);
 
             List<object?> results = [];
             foreach (var result in pwsh.InvokeCommand(script.FullName, Parameters))
@@ -28,7 +31,7 @@ namespace Commandry.Scripts
 
         public override async Task<CommandMetadata> DescribeAsync(CancellationToken cancellation)
         {
-            using Pwsh pwsh = runspace.CreatePwsh(Logger);
+            using Pwsh pwsh = runspace.CreatePwsh(ReportProgress, Logger);
 
             CommandMetadata commandMetadata = new()
             {
@@ -36,13 +39,14 @@ namespace Commandry.Scripts
             };
 
             ExternalScriptInfo? scriptInfo = pwsh.GetCommand<ExternalScriptInfo>(script.FullName);
-            CommentHelpInfo commentHelpInfo = (scriptInfo?.ScriptBlock.Ast as ScriptBlockAst)?.GetHelpContent() ?? new();
 
             commandMetadata.Schema = new()
             {
                 Parameters = [..
                     scriptInfo?.Parameters?.Values
-                        .Where(parameter => !parameter.IsCommon() || scriptInfo.ScriptContents.Contains($"${parameter.Name}"))
+                        .Where(parameter =>
+                            (!parameter.IsCommon() || scriptInfo.ScriptContents.Contains($"${parameter.Name}")) &&
+                            parameter.Attributes.OfType<ParameterAttribute>().FirstOrDefault()?.DontShow != true)
                         .Select(parameter => new CommandSchema.ParameterSchema
                         {
                             Name = parameter.Name,
@@ -52,17 +56,26 @@ namespace Commandry.Scripts
                         }) ?? []
                 ]
             };
+            
+            CommentHelpInfo commentHelpInfo = (scriptInfo?.ScriptBlock.Ast as ScriptBlockAst)?.GetHelpContent() ?? new();
 
             commandMetadata.Title = commentHelpInfo.Synopsis;
 
             commandMetadata.Description = commentHelpInfo.Description;
+
+            commandMetadata.SetProperty(nameof(commentHelpInfo.Role), commentHelpInfo.Role);
+
+            if (commentHelpInfo.Links is not null)
+            {
+                foreach (var link in commentHelpInfo.Links)
+                    commandMetadata.AddProperty("Link", link);
+            }
 
             if (!string.IsNullOrWhiteSpace(commentHelpInfo.Notes))
             {
                 foreach (var commandMetadataEntry in PwshHelp.ParseDictionary(commentHelpInfo.Notes))
                     commandMetadata.SetProperty(commandMetadataEntry.Key, commandMetadataEntry.Value);
             }
-            commandMetadata.SetProperty(nameof(commentHelpInfo.Role), commentHelpInfo.Role);
 
             return commandMetadata;
         }

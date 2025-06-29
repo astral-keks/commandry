@@ -25,6 +25,12 @@ namespace Commandry
             protected internal set => InnerCommand.Result = value; 
         }
 
+        public override CommandProgress? Progress
+        {
+            protected internal get => InnerCommand.Progress;
+            set => InnerCommand.Progress = value;
+        }
+
         public override ILogger? Logger
         {
             protected internal get => InnerCommand.Logger;

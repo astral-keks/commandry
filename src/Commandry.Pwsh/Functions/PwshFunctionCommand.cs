@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 
 namespace Commandry.Functions
 {
-    internal class PwshFunctionCommand(PwshRunspace runspace, FunctionInfo function) : Command
+    internal class PwshFunctionCommand(PwshRunspace runspace, FunctionInfo function) : PwshCommand
     {
         public override string Name { get; } = function.Name;
 
         public override async Task ExecuteAsync(CancellationToken cancellation)
         {
-            using Pwsh pwsh = runspace.CreatePwsh(Logger);
+            using Pwsh pwsh = runspace.CreatePwsh(ReportProgress,Logger);
+
+            foreach (var kv in Parameters)
+                pwsh.SetVariable(kv.Key, kv.Value);
 
             List<object?> results = [];
             foreach (var result in pwsh.InvokeCommand(function.Name, Parameters))
@@ -27,9 +30,7 @@ namespace Commandry.Functions
 
         public override Task<CommandMetadata> DescribeAsync(CancellationToken cancellation)
         {
-            using Pwsh pwsh = runspace.CreatePwsh(Logger);
-
-            CommentHelpInfo commentHelpInfo = (function?.ScriptBlock.Ast as FunctionDefinitionAst)?.GetHelpContent() ?? new();
+            using Pwsh pwsh = runspace.CreatePwsh(ReportProgress, Logger);
 
             CommandMetadata commandMetadata = new()
             {
@@ -40,7 +41,9 @@ namespace Commandry.Functions
             {
                 Parameters = [..
                     function?.Parameters?.Values
-                        .Where(parameter => !parameter.IsCommon() || function.Definition.Contains($"${parameter.Name}"))
+                        .Where(parameter => 
+                            (!parameter.IsCommon() || function.Definition.Contains($"${parameter.Name}")) &&
+                            parameter.Attributes.OfType<ParameterAttribute>().FirstOrDefault()?.DontShow != true)
                         .Select(parameter => new CommandSchema.ParameterSchema
                         {
                             Name = parameter.Name,
@@ -51,16 +54,25 @@ namespace Commandry.Functions
                 ]
             };
 
+            CommentHelpInfo commentHelpInfo = (function?.ScriptBlock.Ast as FunctionDefinitionAst)?.GetHelpContent() ?? new();
+
             commandMetadata.Title = commentHelpInfo.Synopsis;
 
             commandMetadata.Description = commentHelpInfo.Description;
+
+            commandMetadata.SetProperty(nameof(commentHelpInfo.Role), commentHelpInfo.Role);
+
+            if (commentHelpInfo.Links is not null)
+            {
+                foreach (var link in commentHelpInfo.Links)
+                    commandMetadata.AddProperty("Link", link);
+            }
 
             if (!string.IsNullOrWhiteSpace(commentHelpInfo.Notes))
             {
                 foreach (var commandMetadataEntry in PwshHelp.ParseDictionary(commentHelpInfo.Notes))
                     commandMetadata.SetProperty(commandMetadataEntry.Key, commandMetadataEntry.Value);
             }
-            commandMetadata.SetProperty(nameof(commentHelpInfo.Role), commentHelpInfo.Role);
 
             return Task.FromResult(commandMetadata);
         }

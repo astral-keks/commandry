@@ -25,9 +25,9 @@ namespace Commandry
             _runspace.SessionStateProxy.SetVariable(name, value);
         }
 
-        public Pwsh CreatePwsh(ILogger? logger = default)
+        public Pwsh CreatePwsh(PwshTracker? tracker = default, ILogger? logger = default)
         {
-            return new(_runspace, logger);
+            return new(_runspace, tracker, logger);
         }
     }
 }

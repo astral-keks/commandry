@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commandry.Mcp.Http", "Comma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commandry.Mcp", "Commandry.Mcp\Commandry.Mcp.csproj", "{934E88EF-582A-C94E-CE60-C1886AE5F15A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commandry.Mcp.Sdk", "Commandry.Mcp.Sdk\Commandry.Mcp.Sdk.csproj", "{23454126-B1DB-49A7-82B6-883FD62C092F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{934E88EF-582A-C94E-CE60-C1886AE5F15A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{934E88EF-582A-C94E-CE60-C1886AE5F15A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{934E88EF-582A-C94E-CE60-C1886AE5F15A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23454126-B1DB-49A7-82B6-883FD62C092F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23454126-B1DB-49A7-82B6-883FD62C092F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23454126-B1DB-49A7-82B6-883FD62C092F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23454126-B1DB-49A7-82B6-883FD62C092F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
