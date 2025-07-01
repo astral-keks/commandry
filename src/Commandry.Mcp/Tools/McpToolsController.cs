@@ -86,7 +86,7 @@ namespace Commandry.Mcp.Tools
                 command.Parameters = _parameterSerializer.Deserialize(request.Arguments, commandMetadata.Schema) ?? [];
                 command.Parameters.SetMcpServer(_mcpServer);
 
-                command.Progress = new McpProgress(_mcpServer, request.ProgressToken, cancellation);
+                command.Progress = new McpToolsProgress(_mcpServer, request.ProgressToken, cancellation);
                 command.Logger = _logger;
 
                 await command.ExecuteAsync(cancellation);

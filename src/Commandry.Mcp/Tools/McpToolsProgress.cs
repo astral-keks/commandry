@@ -2,9 +2,9 @@
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
-namespace Commandry.Mcp.Progress
+namespace Commandry.Mcp.Tools
 {
-    internal class McpProgress(IMcpServer mcpServer, ProgressToken? progressToken, CancellationToken cancellationToken) : CommandProgress
+    internal class McpToolsProgress(IMcpServer mcpServer, ProgressToken? progressToken, CancellationToken cancellationToken) : CommandProgress
     {
         public override void Report(float status, string message)
         {

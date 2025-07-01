@@ -39,7 +39,7 @@ Option<LoggingLevel> logVerbosityOption = new("--log-verbosity", () => LoggingLe
 rootCommand.AddOption(logVerbosityOption);
 
 
-rootCommand.SetHandler(async (DirectoryInfo[] scanDirectories, string[] scanModules, int port, LoggingLevel logVerbosity) =>
+rootCommand.SetHandler(async (scanDirectories, scanModules, port, logVerbosity) =>
 {
     var builder = WebApplication.CreateBuilder(args);
     builder.Services

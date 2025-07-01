@@ -33,7 +33,7 @@ Option<LoggingLevel> logVerbosityOption = new("--log-verbosity", () => LoggingLe
 rootCommand.AddOption(logVerbosityOption);
 
 
-rootCommand.SetHandler(async (DirectoryInfo[] scanDirectories, string[] scanModules, LoggingLevel logVerbosity) =>
+rootCommand.SetHandler(async (scanDirectories, scanModules, logVerbosity) =>
 {
     HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
     builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace); // Configure all logs to go to stderr

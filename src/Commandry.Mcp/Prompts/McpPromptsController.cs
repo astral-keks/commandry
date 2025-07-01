@@ -13,7 +13,7 @@ internal class McpPromptsController : IDisposable
     private readonly ILoggerProvider _loggerProvider;
     private readonly ILogger _logger;
 
-    public McpPromptsController(CommandHost commandHost, McpParameterSerializer parameterSerializer, IMcpServer mcpServer, ILoggerProvider loggerProvider)
+    public McpPromptsController(CommandHost commandHost, McpParameterSerializer parameterSerializer, ILoggerProvider loggerProvider)
     {
         _commandHost = commandHost;
         _parameterSerializer = parameterSerializer;

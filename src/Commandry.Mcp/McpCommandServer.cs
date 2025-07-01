@@ -41,7 +41,7 @@ namespace Commandry.Mcp
                     Tools = commandHost.ToToolsCapability(mcpServer => 
                         new McpToolsController(commandHost, parameterSerializer, mcpServer, mcpServer.AsClientLoggingProvider(logVerbosity))),
                     Prompts = commandHost.ToPromptsCapability(mcpServer => 
-                        new McpPromptsController(commandHost, parameterSerializer, mcpServer, mcpServer.AsClientLoggingProvider(logVerbosity))),
+                        new McpPromptsController(commandHost, parameterSerializer, mcpServer.AsClientLoggingProvider(logVerbosity))),
                     Resources = commandHost.ToResourcesCapability(mcpServer => 
                         new McpResourcesController(commandHost, mcpServer, mcpServer.AsClientLoggingProvider(logVerbosity))),
                 };

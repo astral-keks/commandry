@@ -1,5 +1,4 @@
 ﻿using Commandry.Hosting;
-using Commandry.Mcp.Logging;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
