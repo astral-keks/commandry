@@ -9,15 +9,13 @@ namespace Commandry.Mcp.Tools
     internal class McpToolsController : IDisposable
     {
         private readonly CommandHost _commandHost;
-        private readonly McpParameterSerializer _parameterSerializer;
         private readonly IMcpServer _mcpServer;
         private readonly ILoggerProvider _loggerProvider;
         private readonly ILogger _logger;
 
-        public McpToolsController(CommandHost commandHost, McpParameterSerializer parameterSerializer, IMcpServer mcpServer, ILoggerProvider loggerProvider)
+        public McpToolsController(CommandHost commandHost, IMcpServer mcpServer, ILoggerProvider loggerProvider)
         {
             _commandHost = commandHost;
-            _parameterSerializer = parameterSerializer;
             _mcpServer = mcpServer;
             _loggerProvider = loggerProvider;
             _logger = _loggerProvider.CreateLogger(nameof(McpResourcesController));
@@ -82,8 +80,8 @@ namespace Commandry.Mcp.Tools
 
                 CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
 
-                command.Parameters = _parameterSerializer.Deserialize(request.Arguments, commandMetadata.Schema) ?? [];
-                command.Parameters.SetMcpServer(_mcpServer);
+                command.Parameters = commandMetadata.Schema.Deserialize(request.Arguments);
+                //command.Parameters.SetMcpServer(_mcpServer);
 
                 command.Progress = new McpToolsProgress(_mcpServer, request.ProgressToken, cancellation);
                 command.Logger = _logger;

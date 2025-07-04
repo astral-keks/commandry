@@ -8,16 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Commandry.Mcp\Commandry.Mcp.csproj" />
+    <ProjectReference Include="..\Commandry.Pwsh\Commandry.Pwsh.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ModelContextProtocol.AspNetCore " Version="0.3.0-preview.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Commandry.Mcp\Commandry.Mcp.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="ModelContextProtocol.AspNetCore" Version="0.3.0-preview.1" />
   </ItemGroup>
 
 </Project>

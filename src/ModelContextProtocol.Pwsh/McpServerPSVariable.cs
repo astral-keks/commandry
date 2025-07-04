@@ -4,7 +4,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 
-namespace Commandry
+namespace ModelContextProtocol.Pwsh
 {
     public static class McpServerPSVariable
     {

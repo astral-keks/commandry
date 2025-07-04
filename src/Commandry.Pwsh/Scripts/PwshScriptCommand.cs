@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Commandry.Schemas;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
@@ -40,21 +41,21 @@ namespace Commandry.Scripts
 
             ExternalScriptInfo? scriptInfo = pwsh.GetCommand<ExternalScriptInfo>(script.FullName);
 
-            commandMetadata.Schema = new()
+            commandMetadata.Schema = new PwshCommandSchema(runspace)
             {
                 Parameters = [..
                     scriptInfo?.Parameters?.Values
                         .Where(parameter =>
                             (!parameter.IsCommon() || scriptInfo.ScriptContents.Contains($"${parameter.Name}")) &&
                             parameter.Attributes.OfType<ParameterAttribute>().FirstOrDefault()?.DontShow != true)
-                        .Select(parameter => new CommandSchema.ParameterSchema
+                        .Select(parameter => new CommandParameterSchema
                         {
                             Name = parameter.Name,
                             Type = parameter.ParameterType != typeof(SwitchParameter) ? parameter.ParameterType : typeof(bool),
                             IsOptional = parameter.Attributes.OfType<ParameterAttribute>().FirstOrDefault()?.Mandatory != true,
                             Description = parameter.Attributes.OfType<ParameterAttribute>().FirstOrDefault()?.HelpMessage ?? string.Empty,
                         }) ?? []
-                ]
+                ],
             };
             
             CommentHelpInfo commentHelpInfo = (scriptInfo?.ScriptBlock.Ast as ScriptBlockAst)?.GetHelpContent() ?? new();

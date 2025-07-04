@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -11,7 +10,7 @@ namespace Commandry
     {
         public abstract string Name { get; }
 
-        public virtual Dictionary<object, object?> Parameters { get; set; } = [];
+        public virtual CommandParameters Parameters { get; set; } = [];
         public virtual CommandResult? Result { get; protected internal set; }
 
         public virtual CommandProgress? Progress { protected internal get; set; }

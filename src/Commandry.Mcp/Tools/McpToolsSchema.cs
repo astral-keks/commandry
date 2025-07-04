@@ -1,10 +1,11 @@
-﻿using Json.Schema;
+﻿using Commandry.Schemas;
+using Json.Schema;
 using Json.Schema.Generation;
 using System.Text.Json;
 
 namespace Commandry.Mcp.Tools;
 
-internal static class McpToolsMapper
+internal static class McpToolsSchema
 {
     public static JsonElement ToJsonSchema(this CommandSchema commandSchema)
     {

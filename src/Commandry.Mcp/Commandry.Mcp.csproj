@@ -15,8 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Commandry.Mcp.Sdk\Commandry.Mcp.Sdk.csproj" />
-    <ProjectReference Include="..\Commandry.Pwsh\Commandry.Pwsh.csproj" />
     <ProjectReference Include="..\Commandry\Commandry.csproj" />
   </ItemGroup>
     

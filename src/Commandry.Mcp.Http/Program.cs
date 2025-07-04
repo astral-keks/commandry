@@ -1,9 +1,14 @@
+using Commandry;
+using Commandry.Functions;
+using Commandry.Hosting;
 using Commandry.Mcp;
+using Commandry.Scripts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using System.CommandLine;
 using System.IO;
+using System.Threading;
 
 RootCommand rootCommand = new()
 {
@@ -42,9 +47,25 @@ rootCommand.AddOption(logVerbosityOption);
 rootCommand.SetHandler(async (scanDirectories, scanModules, port, logVerbosity) =>
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    PwshRunspace pwshRunspace = new(Thread.CurrentThread.GetApartmentState());
+    PwshScriptCommandSource pwshScriptCommandSource = new(pwshRunspace);
+    PwshFunctionCommandSource pwshFunctionCommandSource = new(pwshRunspace);
+
+    foreach (var scanDirectory in scanDirectories)
+    {
+        pwshScriptCommandSource.IncludeDirectory(scanDirectory);
+        pwshFunctionCommandSource.IncludeModules(scanDirectory);
+    }
+    foreach (var scanModule in scanModules)
+        pwshFunctionCommandSource.IncludeModule(scanModule);
+
+    CommandHost commandHost = new([pwshScriptCommandSource, pwshFunctionCommandSource]);
+
     builder.Services
-        .AddCommandHostMcpServer(scanDirectories, scanModules, logVerbosity)
+        .AddCommandHostMcpServer(commandHost, logVerbosity)
         .WithHttpTransport();
+
     var app = builder.Build();
 
     app.MapMcp();

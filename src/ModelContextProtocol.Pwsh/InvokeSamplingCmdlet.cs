@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.AI;
 using ModelContextProtocol.Server;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 
-namespace Commandry
+namespace ModelContextProtocol.Pwsh
 {
     [Cmdlet(VerbsLifecycle.Invoke, "Sampling")]
     [OutputType(typeof(ChatResponse))]

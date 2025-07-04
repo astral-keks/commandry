@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Commandry.Schemas;
+using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
@@ -37,14 +38,14 @@ namespace Commandry.Functions
                 Name = Name
             };
 
-            commandMetadata.Schema = new()
+            commandMetadata.Schema = new PwshCommandSchema(runspace)
             {
                 Parameters = [..
                     function?.Parameters?.Values
                         .Where(parameter => 
                             (!parameter.IsCommon() || function.Definition.Contains($"${parameter.Name}")) &&
                             parameter.Attributes.OfType<ParameterAttribute>().FirstOrDefault()?.DontShow != true)
-                        .Select(parameter => new CommandSchema.ParameterSchema
+                        .Select(parameter => new CommandParameterSchema
                         {
                             Name = parameter.Name,
                             Type = parameter.ParameterType != typeof(SwitchParameter) ? parameter.ParameterType : typeof(bool),

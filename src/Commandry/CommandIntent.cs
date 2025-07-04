@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-
-namespace Commandry
+﻿namespace Commandry
 {
     public record CommandIntent
     {
         public string Command { get; set; } = string.Empty;
 
-        public Dictionary<object, object?> Parameters { get; set; } = [];
+        public CommandParameters Parameters { get; set; } = [];
     }
 }

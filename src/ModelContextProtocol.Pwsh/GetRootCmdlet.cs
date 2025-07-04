@@ -2,7 +2,7 @@
 using ModelContextProtocol.Server;
 using System.Management.Automation;
 
-namespace Commandry
+namespace ModelContextProtocol.Pwsh
 {
     [Cmdlet(VerbsCommon.Get, "Root")]
     [OutputType(typeof(Root))]

@@ -1,4 +1,5 @@
-﻿using ModelContextProtocol.Protocol;
+﻿using Commandry.Schemas;
+using ModelContextProtocol.Protocol;
 
 namespace Commandry.Mcp.Prompts;
 

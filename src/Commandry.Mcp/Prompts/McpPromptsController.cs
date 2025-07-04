@@ -2,21 +2,18 @@
 using Commandry.Mcp.Resources;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
-using ModelContextProtocol.Server;
 
 namespace Commandry.Mcp.Prompts;
 
 internal class McpPromptsController : IDisposable
 {
     private readonly CommandHost _commandHost;
-    private readonly McpParameterSerializer _parameterSerializer;
     private readonly ILoggerProvider _loggerProvider;
     private readonly ILogger _logger;
 
-    public McpPromptsController(CommandHost commandHost, McpParameterSerializer parameterSerializer, ILoggerProvider loggerProvider)
+    public McpPromptsController(CommandHost commandHost, ILoggerProvider loggerProvider)
     {
         _commandHost = commandHost;
-        _parameterSerializer = parameterSerializer;
         _loggerProvider = loggerProvider;
         _logger = _loggerProvider.CreateLogger(nameof(McpResourcesController));
     }
@@ -71,7 +68,7 @@ internal class McpPromptsController : IDisposable
                 throw new ArgumentException($"Prompt {commandName} was not found");
 
             CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
-            command.Parameters = _parameterSerializer.Deserialize(request?.Arguments, commandMetadata.Schema) ?? [];
+            command.Parameters = commandMetadata.Schema.Deserialize(request?.Arguments);
             command.Logger = _logger;
 
             await command.ExecuteAsync(cancellation);

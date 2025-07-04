@@ -2,7 +2,7 @@
 using ModelContextProtocol.Server;
 using System.Management.Automation;
 
-namespace Commandry
+namespace ModelContextProtocol.Pwsh
 {
     [Cmdlet(VerbsLifecycle.Invoke, "Elicitation")]
     [OutputType(typeof(ElicitResult))]

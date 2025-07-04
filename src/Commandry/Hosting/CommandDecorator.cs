@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ namespace Commandry.Hosting
     {
         public override string Name => command.Name;
 
-        public override Dictionary<object, object?> Parameters
+        public override CommandParameters Parameters
         {
             get => command.Parameters;
             set => command.Parameters = value;
