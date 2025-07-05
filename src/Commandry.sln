@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{02EA681E-C7D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelContextProtocol.Pwsh", "ModelContextProtocol.Pwsh\ModelContextProtocol.Pwsh.csproj", "{91401AC7-66EE-E15E-0379-B472435A0860}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerShell.DependencyInjection", "PowerShell.DependencyInjection\PowerShell.DependencyInjection.csproj", "{0C1925B1-BBAA-4EA1-BE6A-8D53CFE7556B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,15 +49,17 @@ Global
 		{91401AC7-66EE-E15E-0379-B472435A0860}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91401AC7-66EE-E15E-0379-B472435A0860}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91401AC7-66EE-E15E-0379-B472435A0860}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C1925B1-BBAA-4EA1-BE6A-8D53CFE7556B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C1925B1-BBAA-4EA1-BE6A-8D53CFE7556B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C1925B1-BBAA-4EA1-BE6A-8D53CFE7556B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C1925B1-BBAA-4EA1-BE6A-8D53CFE7556B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{0262B9F3-D7BA-EBDF-DB10-A99842C0F080} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{040FC0E6-D53F-426F-6A9D-58774F7C6E6D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{934E88EF-582A-C94E-CE60-C1886AE5F15A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{91401AC7-66EE-E15E-0379-B472435A0860} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{0C1925B1-BBAA-4EA1-BE6A-8D53CFE7556B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8EE43863-2A99-46BD-A827-2B89E788DEBF}

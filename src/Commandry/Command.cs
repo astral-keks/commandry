@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Commandry.Services;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ namespace Commandry
 
         public virtual CommandProgress? Progress { protected internal get; set; }
         public virtual ILogger? Logger { protected internal get; set; }
+
+        public virtual IServiceProvider Services { get; set; } = EmptyServiceProvider.Instance;
 
         public event EventHandler? CanExecuteChanged;
         protected void OnCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);

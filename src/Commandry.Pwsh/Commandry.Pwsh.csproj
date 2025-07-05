@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Commandry\Commandry.csproj" />
+    <ProjectReference Include="..\PowerShell.DependencyInjection\PowerShell.DependencyInjection.csproj" />
   </ItemGroup>
 
 </Project>

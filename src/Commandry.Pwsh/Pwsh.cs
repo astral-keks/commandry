@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.DependencyInjection;
 using System.Management.Automation.Runspaces;
 using System.Threading;
 
@@ -15,6 +16,7 @@ namespace Commandry
         private readonly PowerShell _powerShell;
         private readonly PwshTracker? _tracker;
         private readonly ILogger? _logger;
+        private readonly bool _locked;
 
         public Pwsh(Runspace runspace, PwshTracker? tracker, ILogger? logger)
         {
@@ -22,7 +24,10 @@ namespace Commandry
             _tracker = tracker;
             _logger = logger;
 
+            Monitor.Enter(_runspace, ref _locked);
+
             _powerShell = PowerShell.Create(runspace);
+            _powerShell.InvocationStateChanged += OnInvocationStateChanged;
             _powerShell.Streams.Verbose.DataAdding += OnVerboseMessage;
             _powerShell.Streams.Debug.DataAdding += OnDebugMessage;
             _powerShell.Streams.Information.DataAdding += OnInformationMessage;
@@ -33,87 +38,78 @@ namespace Commandry
 
         public void Dispose()
         {
-            _powerShell.Streams.Verbose.DataAdding -= OnVerboseMessage;
-            _powerShell.Streams.Debug.DataAdding -= OnDebugMessage;
-            _powerShell.Streams.Information.DataAdding -= OnInformationMessage;
-            _powerShell.Streams.Progress.DataAdding -= OnProgressMessage;
-            _powerShell.Streams.Warning.DataAdding -= OnWarningMessage;
-            _powerShell.Streams.Error.DataAdding -= OnErrorMessage;
-
-            _powerShell.Dispose();
+            try
+            {
+                _powerShell.Streams.Verbose.DataAdding -= OnVerboseMessage;
+                _powerShell.Streams.Debug.DataAdding -= OnDebugMessage;
+                _powerShell.Streams.Information.DataAdding -= OnInformationMessage;
+                _powerShell.Streams.Progress.DataAdding -= OnProgressMessage;
+                _powerShell.Streams.Warning.DataAdding -= OnWarningMessage;
+                _powerShell.Streams.Error.DataAdding -= OnErrorMessage;
+                _powerShell.InvocationStateChanged -= OnInvocationStateChanged;
+                _powerShell.Dispose();
+            }
+            finally
+            {
+                _runspace.ResetRunspaceState();
+                if (_locked)
+                    Monitor.Exit(_runspace);
+            }
         }
 
         public PSModuleInfo? ImportModule(string moduleNameOrPath)
         {
-            PSModuleInfo? result = default;
-
-            Invoke(() =>
-            {
-                result = _powerShell
-                    .AddCommand("Import-Module").AddArgument(moduleNameOrPath).AddParameter("PassThru")
-                    .Invoke()
-                    .Select(result => result.BaseObject)
-                    .OfType<PSModuleInfo>()
-                    .FirstOrDefault();
-            });
-
-            return result;
+            return _powerShell
+                .AddCommand("Import-Module").AddArgument(moduleNameOrPath).AddParameter("PassThru")
+                .Invoke()
+                .Select(result => result.BaseObject)
+                .OfType<PSModuleInfo>()
+                .FirstOrDefault();
         }
 
         public void RemoveModule(string moduleName)
         {
-            Invoke(() =>
-            {
-                _powerShell
-                    .AddCommand("Remove-Module").AddArgument(moduleName)
-                    .Invoke();
-            });
+            _powerShell
+                .AddCommand("Remove-Module").AddArgument(moduleName)
+                .Invoke();
         }
 
         public List<PSModuleInfo> GetModules()
         {
-            List<PSModuleInfo> results = [];
+            return _powerShell
+                .AddCommand("Get-Module")
+                .Invoke()
+                .Select(result => result.BaseObject)
+                .OfType<PSModuleInfo>()
+                .ToList();
+        }
 
-            Invoke(() =>
-            {
-                results.AddRange(
-                    _powerShell
-                        .AddCommand("Get-Module")
-                        .Invoke()
-                        .Select(result => result.BaseObject)
-                        .OfType<PSModuleInfo>());
-            });
-
-            return results;
+        public void SetServiceProvider(IServiceProvider serviceProvider)
+        {
+            _powerShell.SetServiceProvider(serviceProvider);
         }
 
         public void SetVariable(object variableName, object? variableValue)
         {
-            Invoke(() =>
-            {
-                _powerShell
-                    .AddCommand("Set-Variable").AddArgument(variableName).AddArgument(variableValue)
-                    .Invoke();
-            });
+            _powerShell
+                .AddCommand("Set-Variable").AddArgument(variableName).AddArgument(variableValue)
+                .Invoke();
         }
 
         public List<object?> InvokeCommand(string command, IDictionary<object, object?> parameters)
         {
             List<object?> results = [];
 
-            Invoke(() =>
-            {
-                _powerShell.AddCommand(command);
-                foreach (var parameter in parameters?.AsEnumerable() ?? [])
-                    _powerShell.AddParameter(parameter.Key.ToString(), parameter.Value);
+            _powerShell.AddCommand(command);
+            foreach (var parameter in parameters?.AsEnumerable() ?? [])
+                _powerShell.AddParameter(parameter.Key.ToString(), parameter.Value);
 
-                Collection<PSObject> records = _powerShell.Invoke();
-                if (_powerShell.HadErrors)
-                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
+            Collection<PSObject> records = _powerShell.Invoke();
+            if (_powerShell.HadErrors)
+                throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
 
-                foreach (var record in records)
-                    results.Add(record?.BaseObject);
-            });
+            foreach (var record in records)
+                results.Add(record?.BaseObject);
 
             return results;
         }
@@ -121,23 +117,16 @@ namespace Commandry
         public TCommandInfo? GetCommand<TCommandInfo>(string command)
             where TCommandInfo : CommandInfo
         {
-            TCommandInfo? result = default;
+            Collection<PSObject> results = _powerShell
+                .AddCommand($"Get-Command").AddArgument(command)
+                .Invoke();
+            if (_powerShell.HadErrors)
+                throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
 
-            Invoke(() =>
-            {
-                Collection<PSObject> results = _powerShell
-                    .AddCommand($"Get-Command").AddArgument(command)
-                    .Invoke();
-                if (_powerShell.HadErrors)
-                    throw new PwshException { Errors = [.. _powerShell.Streams.Error] };
-
-                result = results
-                    .Select(result => result.BaseObject)
-                    .OfType<TCommandInfo>()
-                    .FirstOrDefault();
-            });
-
-            return result;
+            return results
+                .Select(result => result.BaseObject)
+                .OfType<TCommandInfo>()
+                .FirstOrDefault();
         }
 
         public TResult WithRunspace<TResult>(Func<TResult> operation)
@@ -155,19 +144,27 @@ namespace Commandry
             }
         }
 
-        private void Invoke(Action action)
+        private void OnInvocationStateChanged(object? sender, PSInvocationStateChangedEventArgs e)
         {
-            bool locked = false;
-            try
+            switch (e.InvocationStateInfo.State)
             {
-                Monitor.Enter(_runspace, ref locked);
-                action();
-            }
-            finally
-            {
-                _powerShell.Commands.Clear();
-                if (locked)
-                    Monitor.Exit(_runspace);
+                case PSInvocationState.Completed:
+                    _powerShell.Commands.Clear();
+                    break;
+
+                case PSInvocationState.Failed:
+                    _powerShell.Commands.Clear();
+                    break;
+
+                case PSInvocationState.Stopped:
+                    _powerShell.Commands.Clear();
+                    break;
+
+                case PSInvocationState.Running:
+                    break;
+
+                case PSInvocationState.Stopping:
+                    break;
             }
         }
 

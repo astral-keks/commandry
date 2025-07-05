@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.DependencyInjection;
 
 namespace ModelContextProtocol.Pwsh
 {
@@ -24,6 +26,18 @@ namespace ModelContextProtocol.Pwsh
         [Parameter]
         public ChatOptions? Options { get; set; }
 
+        private IMcpServer McpServer => this.GetServiceProvider().GetRequiredService<IMcpServer>();
+
+        protected override void BeginProcessing()
+        {
+            List<ChatMessage> messages = GetMessages();
+
+            using IChatClient chat = McpServer.AsSamplingChatClient();
+            ChatResponse response = chat.GetResponseAsync(messages, Options).GetAwaiter().GetResult();
+
+            WriteObject(response);
+        }
+
         private List<ChatMessage> GetMessages()
         {
             IEnumerable<ChatMessage> messages = Messages;
@@ -31,19 +45,6 @@ namespace ModelContextProtocol.Pwsh
                 messages = messages.Append(new(Role, Text));
 
             return [.. messages];
-        }
-
-        protected override void BeginProcessing()
-        {
-            if (this.TryGetMcpServer(out IMcpServer? mcp))
-            {
-                List<ChatMessage> messages = GetMessages();
-
-                using IChatClient chat = mcp.AsSamplingChatClient();
-                ChatResponse response = chat.GetResponseAsync(messages, Options).GetAwaiter().GetResult();
-
-                WriteObject(response);
-            }
         }
     }
 }

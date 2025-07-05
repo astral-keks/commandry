@@ -33,6 +33,12 @@ namespace Commandry.Hosting
             set => command.Logger = value;
         }
 
+        public override IServiceProvider Services 
+        { 
+            get => command.Services; 
+            set => command.Services = value; 
+        }
+
         public override Task<CommandMetadata> DescribeAsync(CancellationToken cancellation) => command.DescribeAsync(cancellation);
 
         public override Task ExecuteAsync(CancellationToken cancellation) => commandDispatcher.InvokeAsync(async () =>

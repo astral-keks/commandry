@@ -11,7 +11,7 @@
     <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.1" />
     <PackageReference Include="JsonSchema.Net" Version="7.3.4" />
     <PackageReference Include="JsonSchema.Net.Generation" Version="5.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="*" />
   </ItemGroup>
 
   <ItemGroup>

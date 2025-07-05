@@ -1,5 +1,6 @@
 ﻿using Commandry.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,6 +35,12 @@ namespace Commandry
         {
             protected internal get => InnerCommand.Logger;
             set => InnerCommand.Logger = value;
+        }
+
+        public override IServiceProvider Services 
+        { 
+            get => InnerCommand.Services; 
+            set => InnerCommand.Services = value; 
         }
 
         public override async Task ExecuteAsync(CancellationToken cancellation)

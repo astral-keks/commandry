@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.4.5" />
     <PackageReference Include="ModelContextProtocol.Core" Version="0.3.0-preview.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PowerShell.DependencyInjection\PowerShell.DependencyInjection.csproj" />
   </ItemGroup>
 
   <ItemGroup>

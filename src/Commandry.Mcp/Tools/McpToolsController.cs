@@ -1,5 +1,6 @@
 ﻿using Commandry.Hosting;
 using Commandry.Mcp.Resources;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -81,10 +82,14 @@ namespace Commandry.Mcp.Tools
                 CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
 
                 command.Parameters = commandMetadata.Schema.Deserialize(request.Arguments);
-                //command.Parameters.SetMcpServer(_mcpServer);
+
+                ServiceCollection services = [];
+                services.AddSingleton(_mcpServer);
+                command.Services = services.BuildServiceProvider();
 
                 command.Progress = new McpToolsProgress(_mcpServer, request.ProgressToken, cancellation);
                 command.Logger = _logger;
+
 
                 await command.ExecuteAsync(cancellation);
 

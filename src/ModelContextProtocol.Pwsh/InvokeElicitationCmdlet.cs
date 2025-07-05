@@ -1,6 +1,8 @@
-﻿using ModelContextProtocol.Protocol;
+﻿using Microsoft.Extensions.DependencyInjection;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using System.Management.Automation;
+using System.Management.Automation.DependencyInjection;
 
 namespace ModelContextProtocol.Pwsh
 {
@@ -12,11 +14,13 @@ namespace ModelContextProtocol.Pwsh
         [ValidateNotNull]
         public ElicitRequestParams? Request { get; set; }
 
+        private IMcpServer McpServer => this.GetServiceProvider().GetRequiredService<IMcpServer>();
+
         protected override void BeginProcessing()
         {
-            if (this.TryGetMcpServer(out IMcpServer? mcp) && Request is not null)
+            if (Request is not null)
             {
-                ElicitResult result = mcp.ElicitAsync(Request).GetAwaiter().GetResult();
+                ElicitResult result = McpServer.ElicitAsync(Request).GetAwaiter().GetResult();
                 
                 WriteObject(result);
             }

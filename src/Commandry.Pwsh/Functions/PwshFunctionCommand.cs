@@ -16,8 +16,7 @@ namespace Commandry.Functions
         {
             using Pwsh pwsh = runspace.CreatePwsh(ReportProgress,Logger);
 
-            foreach (var kv in Parameters)
-                pwsh.SetVariable(kv.Key, kv.Value);
+            pwsh.SetServiceProvider(Services);
 
             List<object?> results = [];
             foreach (var result in pwsh.InvokeCommand(function.Name, Parameters))
