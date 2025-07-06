@@ -89,13 +89,6 @@ namespace Commandry
             _powerShell.SetServiceProvider(serviceProvider);
         }
 
-        public void SetVariable(object variableName, object? variableValue)
-        {
-            _powerShell
-                .AddCommand("Set-Variable").AddArgument(variableName).AddArgument(variableValue)
-                .Invoke();
-        }
-
         public List<object?> InvokeCommand(string command, IDictionary<object, object?> parameters)
         {
             List<object?> results = [];
