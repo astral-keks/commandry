@@ -14,14 +14,14 @@ namespace Commandry
     {
         private readonly Runspace _runspace;
         private readonly PowerShell _powerShell;
-        private readonly PwshTracker? _tracker;
+        private readonly Action<ProgressRecord>? _progress;
         private readonly ILogger? _logger;
         private readonly bool _locked;
 
-        public Pwsh(Runspace runspace, PwshTracker? tracker, ILogger? logger)
+        public Pwsh(Runspace runspace, Action<ProgressRecord>? progress, ILogger? logger)
         {
             _runspace = runspace;
-            _tracker = tracker;
+            _progress = progress;
             _logger = logger;
 
             Monitor.Enter(_runspace, ref _locked);
@@ -179,9 +179,9 @@ namespace Commandry
 
         private void OnProgressMessage(object? sender, DataAddingEventArgs e)
         {
-            if (_tracker is not null && e.ItemAdded is ProgressRecord progress)
+            if (_progress is not null && e.ItemAdded is ProgressRecord progress)
             {
-                _tracker(progress);
+                _progress(progress);
             }
             OnLogMessage(LogLevel.Information, e.ItemAdded);
         }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.PowerShell;
+using System;
+using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Threading;
 
@@ -25,9 +27,9 @@ namespace Commandry
             _runspace.SessionStateProxy.SetVariable(name, value);
         }
 
-        public Pwsh CreatePwsh(PwshTracker? tracker = default, ILogger? logger = default)
+        public Pwsh CreatePwsh(Action<ProgressRecord>? progress = default, ILogger? logger = default)
         {
-            return new(_runspace, tracker, logger);
+            return new(_runspace, progress, logger);
         }
     }
 }

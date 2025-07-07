@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace Commandry
 {
-    internal class PwshWatch : CommandWatch
+    internal class PwshFsWatch : CommandWatch
     {
         private readonly List<FileSystemWatcher> _watchers;
 
-        public PwshWatch(IEnumerable<string> directories, IEnumerable<string> filters)
+        public PwshFsWatch(IEnumerable<string> directories, IEnumerable<string> filters)
         {
             _watchers = [.. directories.SelectMany(directory => filters.Select(filter =>
             {

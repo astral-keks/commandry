@@ -59,7 +59,7 @@ namespace Commandry.Functions
 
         public override CommandWatch? WatchCommands()
         {
-            PwshWatch watch = new(_watchDirectories, ["*.psm1", "*.psd1"]);
+            PwshFsWatch watch = new(_watchDirectories, ["*.psm1", "*.psd1"]);
             watch.FileChanged += Watch_FileChanged;
             return watch;
         }
