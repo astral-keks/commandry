@@ -26,9 +26,10 @@ namespace Commandry.Scripts
             IEnumerable<ParameterMetadata> parametersMetadata = scriptInfo?.Parameters?.Values
                 .Where(parameter => !parameter.IsCommon() || scriptInfo.ScriptContents.Contains($"${parameter.Name}"))
                 ?? [];
+            IEnumerable<PSTypeName> outputsMetadata = scriptInfo?.OutputType ?? Enumerable.Empty<PSTypeName>();
             CommentHelpInfo commentHelpInfo = (scriptInfo?.ScriptBlock.Ast as ScriptBlockAst)?.GetHelpContent() ?? new();
 
-            return await DescribeAsync(parametersMetadata, commentHelpInfo, cancellation);
+            return await DescribeAsync(parametersMetadata, outputsMetadata, commentHelpInfo, cancellation);
         }
     }
 }

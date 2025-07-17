@@ -5,10 +5,10 @@ namespace Commandry.Schemas
 {
     public class PwshCommandSchema(PwshRunspace runspace) : CommandSchema
     {
-        public override CommandParameters Deserialize(IReadOnlyDictionary<string, JsonElement>? source)
+        public override CommandParameters DeserializeParameters(IReadOnlyDictionary<string, JsonElement>? source)
         {
             using Pwsh pwsh = runspace.CreatePwsh();
-            return pwsh.WithRunspace(() => base.Deserialize(source));
+            return pwsh.WithRunspace(() => base.DeserializeParameters(source));
         }
     }
 }

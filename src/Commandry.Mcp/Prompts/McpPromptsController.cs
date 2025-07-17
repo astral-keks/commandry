@@ -68,7 +68,7 @@ internal class McpPromptsController : IDisposable
                 throw new ArgumentException($"Prompt {commandName} was not found");
 
             CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
-            command.Parameters = commandMetadata.Schema.Deserialize(request?.Arguments);
+            command.Parameters = commandMetadata.Schema.DeserializeParameters(request?.Arguments);
             command.Logger = _logger;
 
             await command.ExecuteAsync(cancellation);

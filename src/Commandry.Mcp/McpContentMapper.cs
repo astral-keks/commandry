@@ -1,4 +1,6 @@
 ﻿using ModelContextProtocol.Protocol;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Commandry.Mcp;
 
@@ -10,4 +12,6 @@ internal static class McpContentMapper
         string text => new TextContentBlock { Text = text },
         _ => throw new NotSupportedException($"Unsupported content: {source}"),
     };
+
+    public static JsonNode? ToJsonNode(this object? source) => JsonSerializer.SerializeToNode(source);
 }

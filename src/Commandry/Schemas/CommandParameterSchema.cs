@@ -10,7 +10,7 @@ namespace Commandry.Schemas
         public required bool IsOptional { get; set; }
         public required Type Type { get; set; }
 
-        public virtual object? Deserialize(JsonElement source)
+        public virtual object? DeserializeValue(JsonElement source)
         {
             return source.Deserialize(Type);
         }

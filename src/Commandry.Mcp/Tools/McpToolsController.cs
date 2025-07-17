@@ -42,7 +42,8 @@ namespace Commandry.Mcp.Tools
                         {
                             Name = commandMetadata.GetProperty(nameof(Tool.Name)) ?? commandMetadata.Name,
                             Description = commandMetadata.Description,
-                            InputSchema = commandMetadata.Schema.ToJsonSchema(),
+                            InputSchema = commandMetadata.Schema.Parameters.ToJsonSchema(),
+                            OutputSchema = commandMetadata.Schema.Results.ToJsonSchema(),
                             Annotations = new()
                             {
                                 Title = commandMetadata.Title ?? commandMetadata.Name,
@@ -81,15 +82,12 @@ namespace Commandry.Mcp.Tools
 
                 CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
 
-                command.Parameters = commandMetadata.Schema.Deserialize(request.Arguments);
-
+                command.Parameters = commandMetadata.Schema.DeserializeParameters(request.Arguments);
                 ServiceCollection services = [];
                 services.AddSingleton(_mcpServer);
                 command.Services = services.BuildServiceProvider();
-
                 command.Progress = new McpToolsProgress(_mcpServer, request.ProgressToken, cancellation);
                 command.Logger = _logger;
-
 
                 await command.ExecuteAsync(cancellation);
 
@@ -97,8 +95,14 @@ namespace Commandry.Mcp.Tools
                 result = new()
                 {
                     Content = [.. commandResult.Records
-                        .Where(record => record is not null)
+                        .Where(record => record is not null && 
+                            commandMetadata.Schema.Results.Any(resultSchema => !resultSchema.Type.IsAssignableFrom(record.GetType())))
                         .Select(record => record.ToContentBlock())],
+                    StructuredContent = commandResult.Records
+                        .Where(record => record is not null &&
+                            commandMetadata.Schema.Results.Any(resultSchema => !resultSchema.Type.IsAssignableFrom(record.GetType())))
+                        .Select(record => record.ToJsonNode())
+                        .FirstOrDefault(),
                     IsError = command.Result?.Error is not null
                 };
             }

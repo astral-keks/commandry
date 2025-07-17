@@ -19,11 +19,13 @@ namespace Commandry.Functions
 
         public override async Task<CommandMetadata> DescribeAsync(CancellationToken cancellation)
         {
-            IEnumerable<ParameterMetadata> parametersMetadata = function?.Parameters?.Values
+            IEnumerable<ParameterMetadata> parametersMetadata = function.Parameters?.Values
                 .Where(parameter => !parameter.IsCommon() || function.Definition.Contains($"${parameter.Name}"))
                 ?? [];
-            CommentHelpInfo commentHelpInfo = (function?.ScriptBlock.Ast as FunctionDefinitionAst)?.GetHelpContent() ?? new();
-            return await DescribeAsync(parametersMetadata, commentHelpInfo, cancellation);
+            IEnumerable<PSTypeName> outputsMetadata = function.OutputType;
+            CommentHelpInfo commentHelpInfo = (function.ScriptBlock.Ast as FunctionDefinitionAst)?.GetHelpContent() ?? new();
+
+            return await DescribeAsync(parametersMetadata, outputsMetadata, commentHelpInfo, cancellation);
         }
     }
 }

@@ -6,20 +6,22 @@ namespace Commandry.Schemas
 {
     public class CommandSchema
     {
-        public static readonly CommandSchema Empty = new() { Parameters = [] };
+        public static readonly CommandSchema Empty = new() { Parameters = [], Results = [] };
 
         public required List<CommandParameterSchema> Parameters { get; init; }
 
-        public virtual CommandParameters Deserialize(IReadOnlyDictionary<string, JsonElement>? source)
+        public required List<CommandResultSchema> Results { get; init; }
+
+        public virtual CommandParameters DeserializeParameters(IReadOnlyDictionary<string, JsonElement>? parametersJson)
         {
             CommandParameters result = [];
 
-            if (source is not null)
+            if (parametersJson is not null)
             {
-                foreach (var (parameterSource, parameterSchema) in source
+                foreach (var (parameterSource, parameterSchema) in parametersJson
                     .Join(Parameters, src => src.Key, par => par.Name, (src, par) => (Source: src.Value, Schema: par)))
                 {
-                    object? parameterValue = parameterSchema.Deserialize(parameterSource);
+                    object? parameterValue = parameterSchema.DeserializeValue(parameterSource);
                     result[parameterSchema.Name] = parameterValue;
                 }
             }

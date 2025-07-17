@@ -28,7 +28,8 @@ namespace Commandry
             return Task.CompletedTask;
         }
 
-        protected Task<CommandMetadata> DescribeAsync(IEnumerable<ParameterMetadata> parameters, CommentHelpInfo comment, CancellationToken cancellation)
+        protected Task<CommandMetadata> DescribeAsync(IEnumerable<ParameterMetadata> parameters, IEnumerable<PSTypeName> outputs, CommentHelpInfo comment, 
+            CancellationToken cancellation)
         {
             CommandMetadata commandMetadata = new()
             {
@@ -48,6 +49,22 @@ namespace Commandry
                             Description = parameter.Attributes.OfType<ParameterAttribute>().FirstOrDefault()?.HelpMessage ?? string.Empty,
                         }) ?? []
                 ],
+                Results = [..
+                    outputs
+                        .Select(output => new CommandResultSchema
+                        {
+                            Type = output.Type,
+                            Description = comment.Outputs
+                                .Select(PwshHelp.ParseDictionary)
+                                .Where(outputMetadata => 
+                                    outputMetadata.TryGetValue(nameof(CommandResultSchema.Type), out string? type) && 
+                                    type == output.Type.Name)
+                                .Select(outputMetadata => outputMetadata.TryGetValue(nameof(CommandResultSchema.Description), out string? description) 
+                                    ? description 
+                                    : string.Empty)
+                                .FirstOrDefault() ?? string.Empty
+                        }) ?? []
+                ]
             };
 
             commandMetadata.Title = comment.Synopsis;
