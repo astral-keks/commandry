@@ -94,16 +94,14 @@ namespace Commandry.Mcp.Tools
                 CommandResult commandResult = command.Inspect();
                 result = new()
                 {
-                    Content = [.. commandResult.Records
-                        .Where(record => record is not null && 
-                            commandMetadata.Schema.Results.Any(resultSchema => !resultSchema.Type.IsAssignableFrom(record.GetType())))
-                        .Select(record => record.ToContentBlock())],
+                    Content = commandResult.Records
+                        .Where(record => record is not null && !commandMetadata.Schema.CanSerializeResult(record))
+                        .Select(record => record.ToContentBlock())
+                        .ToArray(),
                     StructuredContent = commandResult.Records
-                        .Where(record => record is not null &&
-                            commandMetadata.Schema.Results.Any(resultSchema => !resultSchema.Type.IsAssignableFrom(record.GetType())))
-                        .Select(record => record.ToJsonNode())
-                        .FirstOrDefault(),
-                    IsError = command.Result?.Error is not null
+                        .Where(record => record is not null && commandMetadata.Schema.CanSerializeResult(record))
+                        .Select(record => commandMetadata.Schema.SerializeResult(record))
+                        .FirstOrDefault()
                 };
             }
             catch (Exception e)
@@ -111,6 +109,7 @@ namespace Commandry.Mcp.Tools
                 _logger.LogError(e, "Unexpected error while calling tool");
                 result = new()
                 {
+                    IsError = true,
                     Content = [new TextContentBlock { Text = $"Error: {e.Message}", Type = "text" }]
                 };
             }

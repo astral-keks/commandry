@@ -9,9 +9,9 @@ using System.Management.Automation.DependencyInjection;
 
 namespace ModelContextProtocol.Pwsh
 {
-    [Cmdlet(VerbsLifecycle.Invoke, "Sampling")]
+    [Cmdlet(VerbsLifecycle.Invoke, "Sampling2")]
     [OutputType(typeof(ChatResponse))]
-    public class InvokeSamplingCmdlet : PSCmdlet
+    public class InvokeSampling2Cmdlet : PSCmdlet
     {
         [Parameter]
         [ValidateNotNullOrWhiteSpace]
@@ -19,31 +19,34 @@ namespace ModelContextProtocol.Pwsh
 
         [Parameter]
         [ValidateSet(["Assistant", "User"])]
-        public ChatRole Role { get; set; } = ChatRole.Assistant;
+        public Role Role { get; set; } = Role.Assistant;
 
         [Parameter(ValueFromPipeline = true)]
-        public IEnumerable<ChatMessage> Messages { get; set; } = [];
-
-        [Parameter]
-        public ChatOptions? Options { get; set; }
+        public IEnumerable<SamplingMessage> Messages { get; set; } = [];
 
         private IMcpServer McpServer => this.GetServiceProvider().GetRequiredService<IMcpServer>();
 
         protected override void BeginProcessing()
         {
-            List<ChatMessage> messages = GetMessages();
-            
-            using IChatClient chat = McpServer.AsSamplingChatClient();
-            ChatResponse response = chat.GetResponseAsync(messages, Options).GetAwaiter().GetResult();
+            CreateMessageRequestParams request = new()
+            {
+                Messages = GetMessages(),
+                IncludeContext = ContextInclusion.AllServers,
+            };
+            CreateMessageResult result = McpServer.SampleAsync(request).GetAwaiter().GetResult();
 
-            WriteObject(response);
+            WriteObject(result);
         }
 
-        private List<ChatMessage> GetMessages()
+        private List<SamplingMessage> GetMessages()
         {
-            IEnumerable<ChatMessage> messages = Messages;
+            IEnumerable<SamplingMessage> messages = Messages;
             if (!string.IsNullOrWhiteSpace(Text))
-                messages = messages.Append(new(Role, Text));
+                messages = messages.Append(new()
+                {
+                    Content = new TextContentBlock { Text = Text },
+                    Role = Role
+                });
 
             return [.. messages];
         }

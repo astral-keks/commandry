@@ -31,8 +31,10 @@ internal static class McpToolsSchema
         return JsonSerializer.SerializeToElement(inputJsonSchema);
     }
 
-    public static JsonElement ToJsonSchema(this ICollection<CommandResultSchema> resultSchemas)
+    public static JsonElement? ToJsonSchema(this ICollection<CommandResultSchema> resultSchemas)
     {
+        if (resultSchemas.Count == 0)
+            return null;
         if (resultSchemas.Count == 1)
             return resultSchemas.Single().ToJsonSchema();
 

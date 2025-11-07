@@ -13,5 +13,4 @@ internal static class McpContentMapper
         _ => throw new NotSupportedException($"Unsupported content: {source}"),
     };
 
-    public static JsonNode? ToJsonNode(this object? source) => JsonSerializer.SerializeToNode(source);
 }

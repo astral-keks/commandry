@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Commandry.Schemas
 {
@@ -27,6 +28,16 @@ namespace Commandry.Schemas
             }
 
             return result;
+        }
+
+        public virtual bool CanSerializeResult(object? result)
+        {
+            return result is not null && Results.Any(resultSchema => resultSchema.Type.IsAssignableFrom(result.GetType()));
+        }
+
+        public virtual JsonNode? SerializeResult(object? result)
+        {
+            return CanSerializeResult(result) ? JsonSerializer.SerializeToNode(result) : default;
         }
     }
 }
