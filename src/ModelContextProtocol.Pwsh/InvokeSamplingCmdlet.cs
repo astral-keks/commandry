@@ -13,38 +13,83 @@ namespace ModelContextProtocol.Pwsh
     [OutputType(typeof(ChatResponse))]
     public class InvokeSamplingCmdlet : PSCmdlet
     {
-        [Parameter]
+        [Parameter(ParameterSetName = nameof(Text))]
         [ValidateNotNullOrWhiteSpace]
         public string? Text { get; set; }
+        [Parameter(ParameterSetName = nameof(Text))]
+        [ValidateSet([nameof(Role.Assistant), nameof(Role.User)])]
+        public Role Role { get; set; } = Role.Assistant;
+
+        [Parameter(ParameterSetName = nameof(Messages), ValueFromPipeline = true)]
+        public IEnumerable<SamplingMessage> Messages { get; set; } = [];
 
         [Parameter]
-        [ValidateSet(["Assistant", "User"])]
-        public ChatRole Role { get; set; } = ChatRole.Assistant;
-
-        [Parameter(ValueFromPipeline = true)]
-        public IEnumerable<ChatMessage> Messages { get; set; } = [];
+        public ContextInclusion IncludeContext { get; set; }
 
         [Parameter]
-        public ChatOptions? Options { get; set; }
+        public string[]? ModelNameHints { get; set; }
+        [Parameter]
+        public float? ModelCostPriority { get; set; }
+        [Parameter]
+        public float? ModelIntelligencePriority { get; set; }
+        [Parameter]
+        public float? ModelSpeedPriority { get; set; }
+
+        [Parameter]
+        public int? MaxTokens { get; set; }
+        [Parameter]
+        public float? Temperature { get; set; }
+        [Parameter]
+        public string[]? StopSequences { get; set; }
+        [Parameter]
+        public string? SystemPrompt { get; set; }
 
         private IMcpServer McpServer => this.GetServiceProvider().GetRequiredService<IMcpServer>();
 
         protected override void BeginProcessing()
         {
-            List<ChatMessage> messages = GetMessages();
-            
-            using IChatClient chat = McpServer.AsSamplingChatClient();
-            ChatResponse response = chat.GetResponseAsync(messages, Options).GetAwaiter().GetResult();
+            CreateMessageRequestParams request = new()
+            {
+                Messages = GetMessages(),
+                ModelPreferences = 
+                    ModelNameHints is not null || 
+                    ModelCostPriority is not null || 
+                    ModelIntelligencePriority is not null || 
+                    ModelSpeedPriority is not null 
+                    ? new()
+                    {
+                        Hints = ModelNameHints?.Select(nameHint => new ModelHint { Name = nameHint }).ToList(),
+                        CostPriority = ModelCostPriority,
+                        IntelligencePriority = ModelIntelligencePriority,
+                        SpeedPriority = ModelSpeedPriority,
+                    }
+                    : default,
+                Temperature = Temperature,
+                MaxTokens = MaxTokens,
+                StopSequences = StopSequences,
+                SystemPrompt = SystemPrompt,
+                IncludeContext = IncludeContext,
+            };
 
-            WriteObject(response);
+            if (request.Messages.Any())
+            {
+                CreateMessageResult result = McpServer.SampleAsync(request).GetAwaiter().GetResult();
+
+                WriteObject(result);
+            }
         }
 
-        private List<ChatMessage> GetMessages()
+        private List<SamplingMessage> GetMessages()
         {
-            IEnumerable<ChatMessage> messages = Messages;
+            IEnumerable<SamplingMessage> messages = Messages;
             if (!string.IsNullOrWhiteSpace(Text))
-                messages = messages.Append(new(Role, Text));
-
+            {
+                messages = messages.Append(new()
+                {
+                    Content = new TextContentBlock { Text = Text },
+                    Role = Role
+                });
+            }
             return [.. messages];
         }
     }

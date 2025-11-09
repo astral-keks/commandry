@@ -1,6 +1,4 @@
 ﻿using ModelContextProtocol.Protocol;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Commandry.Mcp;
 

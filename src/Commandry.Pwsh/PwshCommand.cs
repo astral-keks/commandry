@@ -67,11 +67,11 @@ namespace Commandry
                 ]
             };
 
-            commandMetadata.Title = comment.Synopsis;
+            commandMetadata.Title = comment.Synopsis?.Trim() ?? string.Empty;
 
-            commandMetadata.Description = comment.Description;
+            commandMetadata.Description = comment.Description?.Trim() ?? string.Empty;
 
-            commandMetadata.SetProperty(nameof(comment.Role), comment.Role);
+            commandMetadata.SetProperty(nameof(comment.Role), comment.Role?.Trim() ?? string.Empty);
 
             if (comment.Links is not null)
             {

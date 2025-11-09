@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.PowerShell;
-using System;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using System.Threading;
 
 namespace Commandry
 {
@@ -11,12 +9,13 @@ namespace Commandry
     {
         private readonly Runspace _runspace;
 
-        public PwshRunspace(ApartmentState apartmentState = ApartmentState.MTA)
+        public PwshRunspace(string[] initialModules)
         {
             InitialSessionState initialSessionState = InitialSessionState.CreateDefault();
+            initialSessionState.ImportPSModule(initialModules);
             initialSessionState.ExecutionPolicy = ExecutionPolicy.RemoteSigned;
             initialSessionState.ThreadOptions = PSThreadOptions.UseCurrentThread;
-            initialSessionState.ApartmentState = apartmentState;
+            initialSessionState.ApartmentState = Thread.CurrentThread.GetApartmentState();
 
             _runspace = RunspaceFactory.CreateRunspace(initialSessionState);
             _runspace.Open();

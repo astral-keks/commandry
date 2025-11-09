@@ -1,12 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.DependencyInjection;
 using System.Management.Automation.Runspaces;
-using System.Threading;
 
 namespace Commandry
 {

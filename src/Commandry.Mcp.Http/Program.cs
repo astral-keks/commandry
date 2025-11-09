@@ -3,12 +3,9 @@ using Commandry.Functions;
 using Commandry.Hosting;
 using Commandry.Mcp;
 using Commandry.Scripts;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
+using ModelContextProtocol.Pwsh;
 using System.CommandLine;
-using System.IO;
-using System.Threading;
 
 RootCommand rootCommand = new()
 {
@@ -48,7 +45,7 @@ rootCommand.SetHandler(async (scanDirectories, scanModules, port, logVerbosity) 
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    PwshRunspace pwshRunspace = new(Thread.CurrentThread.GetApartmentState());
+    PwshRunspace pwshRunspace = new([McpCmdletsModule.Location]);
     PwshScriptCommandSource pwshScriptCommandSource = new(pwshRunspace);
     PwshFunctionCommandSource pwshFunctionCommandSource = new(pwshRunspace);
 

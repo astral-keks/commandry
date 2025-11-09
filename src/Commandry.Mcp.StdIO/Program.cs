@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
+using ModelContextProtocol.Pwsh;
 using System.CommandLine;
 using System.IO;
 using System.Threading;
@@ -43,7 +44,7 @@ rootCommand.SetHandler(async (scanDirectories, scanModules, logVerbosity) =>
     HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
     builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace); // Configure all logs to go to stderr
 
-    PwshRunspace pwshRunspace = new(Thread.CurrentThread.GetApartmentState());
+    PwshRunspace pwshRunspace = new([McpCmdletsModule.Location]);
     PwshScriptCommandSource pwshScriptCommandSource = new(pwshRunspace);
     PwshFunctionCommandSource pwshFunctionCommandSource = new(pwshRunspace);
 

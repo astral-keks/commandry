@@ -15,7 +15,6 @@ namespace ModelContextProtocol.Pwsh
         protected override void BeginProcessing()
         {
             ListRootsResult result = McpServer.RequestRootsAsync(new()).GetAwaiter().GetResult();
-
             foreach (var root in result.Roots)
             {
                 WriteObject(root);

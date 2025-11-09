@@ -1,15 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>commandry-mcp-http</AssemblyName>
     <RootNamespace>Commandry</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Commandry.Mcp\Commandry.Mcp.csproj" />
     <ProjectReference Include="..\Commandry.Pwsh\Commandry.Pwsh.csproj" />
+    <ProjectReference Include="..\ModelContextProtocol.Pwsh\ModelContextProtocol.Pwsh.csproj" />
   </ItemGroup>
 
   <ItemGroup>

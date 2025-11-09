@@ -3,6 +3,8 @@ using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using System.Management.Automation;
 using System.Management.Automation.DependencyInjection;
+using System.Text.Json;
+using static ModelContextProtocol.Protocol.ElicitRequestParams;
 
 namespace ModelContextProtocol.Pwsh
 {
@@ -12,15 +14,25 @@ namespace ModelContextProtocol.Pwsh
     {
         [Parameter(Mandatory = true)]
         [ValidateNotNull]
-        public ElicitRequestParams? Request { get; set; }
+        public string? Message { get; set; }
+
+        [Parameter(Mandatory = true)]
+        [ValidateNotNull]
+        public string? RequestedSchema { get; set; }
+        private RequestSchema? GetRequestedSchema() => RequestedSchema is not null ? JsonSerializer.Deserialize<RequestSchema>(RequestedSchema) : default;
 
         private IMcpServer McpServer => this.GetServiceProvider().GetRequiredService<IMcpServer>();
 
         protected override void BeginProcessing()
         {
-            if (Request is not null)
+            ElicitRequestParams request = new()
             {
-                ElicitResult result = McpServer.ElicitAsync(Request).GetAwaiter().GetResult();
+                Message = Message ?? "",
+                RequestedSchema = GetRequestedSchema() ?? new()
+            };
+            if (!string.IsNullOrEmpty(request.Message))
+            {
+                ElicitResult result = McpServer.ElicitAsync(request).GetAwaiter().GetResult();
                 
                 WriteObject(result);
             }

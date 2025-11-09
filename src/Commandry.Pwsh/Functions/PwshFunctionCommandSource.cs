@@ -1,9 +1,4 @@
 ﻿using Commandry.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Management.Automation;
 
 namespace Commandry.Functions
