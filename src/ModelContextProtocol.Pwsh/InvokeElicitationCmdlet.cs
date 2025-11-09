@@ -1,39 +1,41 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using ModelContextProtocol.Protocol;
+﻿using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using System.Management.Automation;
-using System.Management.Automation.DependencyInjection;
-using System.Text.Json;
 using static ModelContextProtocol.Protocol.ElicitRequestParams;
 
 namespace ModelContextProtocol.Pwsh
 {
     [Cmdlet(VerbsLifecycle.Invoke, "Elicitation")]
     [OutputType(typeof(ElicitResult))]
-    public class InvokeElicitationCmdlet : PSCmdlet
+    public class InvokeElicitationCmdlet : ModelContextProtocolCmdlet
     {
-        [Parameter(Mandatory = true)]
+        [Parameter(ParameterSetName = nameof(Message), Mandatory = true)]
         [ValidateNotNull]
         public string? Message { get; set; }
-
-        [Parameter(Mandatory = true)]
+        [Parameter(ParameterSetName = nameof(Message), Mandatory = true)]
         [ValidateNotNull]
-        public string? RequestedSchema { get; set; }
-        private RequestSchema? GetRequestedSchema() => RequestedSchema is not null ? JsonSerializer.Deserialize<RequestSchema>(RequestedSchema) : default;
+        public RequestSchema? RequestedSchema { get; set; }
 
-        private IMcpServer McpServer => this.GetServiceProvider().GetRequiredService<IMcpServer>();
+        [Parameter(ParameterSetName = nameof(Request), Mandatory = true, ValueFromPipeline = true)]
+        public ElicitRequestParams? Request { get; set; }
 
         protected override void BeginProcessing()
         {
-            ElicitRequestParams request = new()
-            {
-                Message = Message ?? "",
-                RequestedSchema = GetRequestedSchema() ?? new()
-            };
+            ElicitRequestParams request;
+            if (Request is not null)
+                request = Request;
+            else if (!string.IsNullOrWhiteSpace(Message) && RequestedSchema is not null)
+                request = new()
+                {
+                    Message = Message,
+                    RequestedSchema = RequestedSchema
+                };
+            else
+                throw new ArgumentException("Required parameters were not provided.");
+
             if (!string.IsNullOrEmpty(request.Message))
             {
                 ElicitResult result = McpServer.ElicitAsync(request).GetAwaiter().GetResult();
-                
                 WriteObject(result);
             }
         }

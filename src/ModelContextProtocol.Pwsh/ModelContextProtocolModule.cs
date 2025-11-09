@@ -2,7 +2,7 @@
 
 namespace ModelContextProtocol.Pwsh
 {
-    public static class McpCmdletsModule
+    public static class ModelContextProtocolModule
     {
         public static string Location => Path.Combine(Directory, "ModelContextProtocol.Pwsh.psd1");
 

@@ -44,7 +44,7 @@ rootCommand.SetHandler(async (scanDirectories, scanModules, logVerbosity) =>
     HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
     builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace); // Configure all logs to go to stderr
 
-    PwshRunspace pwshRunspace = new([McpCmdletsModule.Location]);
+    PwshRunspace pwshRunspace = new([ModelContextProtocolModule.Location]);
     PwshScriptCommandSource pwshScriptCommandSource = new(pwshRunspace);
     PwshFunctionCommandSource pwshFunctionCommandSource = new(pwshRunspace);
 

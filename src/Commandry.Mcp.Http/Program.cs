@@ -45,7 +45,7 @@ rootCommand.SetHandler(async (scanDirectories, scanModules, port, logVerbosity) 
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    PwshRunspace pwshRunspace = new([McpCmdletsModule.Location]);
+    PwshRunspace pwshRunspace = new([ModelContextProtocolModule.Location]);
     PwshScriptCommandSource pwshScriptCommandSource = new(pwshRunspace);
     PwshFunctionCommandSource pwshFunctionCommandSource = new(pwshRunspace);
 
