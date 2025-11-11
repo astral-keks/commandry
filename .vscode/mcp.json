@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"commandry-http": {
+			"url": "http://localhost:3001",
+			"type": "http"
+		}
+	},
+	"inputs": []
+}

@@ -1,10 +1,6 @@
 ﻿using Commandry.Schemas;
-using System.Collections.Generic;
-using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Commandry
 {
@@ -28,7 +24,7 @@ namespace Commandry
             return Task.CompletedTask;
         }
 
-        protected Task<CommandMetadata> DescribeAsync(IEnumerable<ParameterMetadata> parameters, IEnumerable<PSTypeName> outputs, CommentHelpInfo comment, 
+        protected Task<CommandMetadata> DescribeAsync(IEnumerable<ParameterMetadata> parameters, IEnumerable<PSTypeName> outputs, CommentHelpInfo comment,
             CancellationToken cancellation)
         {
             CommandMetadata commandMetadata = new()
@@ -56,11 +52,11 @@ namespace Commandry
                             Type = output.Type,
                             Description = comment.Outputs
                                 .Select(PwshHelp.ParseDictionary)
-                                .Where(outputMetadata => 
-                                    outputMetadata.TryGetValue(nameof(CommandResultSchema.Type), out string? type) && 
+                                .Where(outputMetadata =>
+                                    outputMetadata.TryGetValue(nameof(CommandResultSchema.Type), out string? type) &&
                                     type == output.Type.Name)
-                                .Select(outputMetadata => outputMetadata.TryGetValue(nameof(CommandResultSchema.Description), out string? description) 
-                                    ? description 
+                                .Select(outputMetadata => outputMetadata.TryGetValue(nameof(CommandResultSchema.Description), out string? description)
+                                    ? description
                                     : string.Empty)
                                 .FirstOrDefault() ?? string.Empty
                         }) ?? []

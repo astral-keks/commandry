@@ -1,7 +1,7 @@
-$projectPath = "$PSScriptRoot/src/Commandry.Mcp.StdIO"
+$projectPath = "$PSScriptRoot/../src/Commandry.Mcp.StdIO"
 $csprojPath = "$projectPath/Commandry.Mcp.StdIO.csproj"
 $binPath = "$projectPath/bin/Release"
-$releasesDirectory = "$PSScriptRoot/release"
+$releasesDirectory = "$PSScriptRoot/../release"
 
 $releaseVersion = ([xml](Get-Content $csprojPath)).Project.PropertyGroup.Version
 $releasePlatform = "win-x64"
