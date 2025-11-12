@@ -121,4 +121,8 @@ Options:
 ### Writing MCP-Compatible PowerShell Scripts and Functions
 
 When creating PowerShell scripts and functions use prompts:
-- [mcptool.prompt.md](.github/prompts/mcptool.prompt.md) - for creating MCP tools
+- [mcptool.prompt.md](.github/prompts/mcptool.prompt.md) - template for authoring MCP tools using PowerShell.
+- [mcpprompt.prompt.md](.github/prompts/mcpprompt.prompt.md) - general MCP prompt template for crafting interactive prompts and templates.
+- [mcpresourcelist.prompt.md](.github/prompts/mcpresourcelist.prompt.md) - prompt for generating lists of MCP resources discovered by scripts or modules.
+- [mcpresourcecontent.prompt.md](.github/prompts/mcpresourcecontent.prompt.md) - prompt for producing or describing the content of an individual MCP resource.
+- [mcpresourcetemplatelist.prompt.md](.github/prompts/mcpresourcetemplatelist.prompt.md) - collection of templates for resource-listing prompts and resource templates.
