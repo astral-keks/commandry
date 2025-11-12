@@ -50,12 +50,11 @@ if ($files.Count -eq 0) {
 Write-Progress -Activity "File Search" -Status "Found $($files.Count) files. Processing..."
 
 $results = @()
-$currentFile = 0
+$i = 0
 
 foreach ($file in $files) {
-    $currentFile++
-    $percentComplete = ($currentFile / $files.Count) * 100
-    Write-Progress -Activity "File Search" -Status "Processing file $currentFile of $($files.Count): $($file.Name)" -PercentComplete $percentComplete
+    $i++
+    Write-Progress -Activity "File Search" -Status "Processing file $i of $($files.Count): $($file.Name)"
     
     try {
         # Read file content
@@ -63,7 +62,7 @@ foreach ($file in $files) {
         
         # Create the full prompt for sampling
         $fullPrompt = @"
-You are a code and text analysis assistant. Your task is to carefully read the provided file content and extract only the specific information requested by the user.
+You are a code analysis assistant. Your task is to carefully read the provided file content and extract only the specific information requested by the user.
 
 Guidelines:
 - Return ONLY the relevant snippets or information that matches the extraction criteria

@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Commandry.Mcp.Http": {
+      "commandName": "Project",
+      "commandLineArgs": "--scan-directory ..\\..\\examples",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53151;http://localhost:53152"
+    }
+  }
+}

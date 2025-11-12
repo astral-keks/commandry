@@ -15,5 +15,7 @@ New-Item -ItemType Directory -Path $releasesDirectory -ErrorAction:SilentlyConti
 New-Item -ItemType Directory -Path $releasePath -Force
 New-Item -ItemType Junction -Path $releaseLatestPath -Target $binPath -Force
 
+Copy-Item -Path "$binPath/*" -Destination $releasePath -Recurse -Force
+
 Write-Host "Press any key to exit..."
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
