@@ -34,7 +34,7 @@ Commandry is a .NET-based tool that:
 | **Sampling** | ✅     | **Fully Supported** - Support LLM sampling requests in PowerShell tools |
 | **Roots**    | ✅     | **Fully Supported** - Access workspace roots inside PowerShell tools |
 | **Elicitation** | ✅  | **Fully Supported** - Allow PowerShell tools to interact with user |
-| **Server instructions** | ✅ | **Fully Supported** - Server instructions and agent guidance |
+| **Instructions** | ✅ | **Fully Supported** - Server instructions and agent guidance |
 
 ### Supported MCP Transports
 
@@ -120,5 +120,5 @@ Options:
 
 ### Writing MCP-Compatible PowerShell Scripts and Functions
 
-When creating PowerShell scripts and functions follow [these guidelines](GUIDE.md) or use prompts:
+When creating PowerShell scripts and functions use prompts:
 - [mcptool.prompt.md](.github/prompts/mcptool.prompt.md) - for creating MCP tools
