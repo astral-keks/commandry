@@ -1,12 +1,12 @@
 # Commandry
 
-A handy .NET tool that bridges PowerShell scripts with Model Context Protocol (MCP) servers, enabling seamless integration between AI assistants and PowerShell-based tools and automation.
+A .NET-based MCP server that lets you define Model Context Protocol primitives (tools, resources, prompts, and more) using PowerShell scripts and functions.
 
 ## Summary
 
 ### Motivation
 
-Modern AI agents need access to powerful tools and automation capabilities to be truly useful. PowerShell provides extensive system management and automation capabilities, but there hasn't been an easy way to make these capabilities discoverable by AI assistants in a standardized manner. Commandry solves this problem by providing a bridge between PowerShell scripts and the Model Context Protocol (MCP), allowing AI assistants to discover, understand, and execute PowerShell-based tools.
+Modern AI agents require robust tools and automation to deliver real value. While PowerShell offers extensive system management and scripting capabilities, there hasn't been a straightforward way to expose these as standardized MCP primitives that AI assistants can discover and use. Commandry bridges this gap by allowing you to author MCP tools, resources, and prompts directly in PowerShell, making your scripts and functions immediately accessible to any MCP-compatible AI assistant.
 
 ### Description
 
