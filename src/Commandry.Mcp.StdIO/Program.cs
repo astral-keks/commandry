@@ -9,8 +9,6 @@ using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Pwsh;
 using System.CommandLine;
-using System.IO;
-using System.Threading;
 
 RootCommand rootCommand = new()
 {
@@ -20,7 +18,7 @@ RootCommand rootCommand = new()
 Option<DirectoryInfo[]> scanDirectoryOption = new("--scan-directory")
 {
     Arity = ArgumentArity.OneOrMore,
-    Description = "Directory to scan for PowerShell scripts.",
+    Description = "Directory to scan for PowerShell scripts and modules.",
 };
 rootCommand.AddOption(scanDirectoryOption);
 

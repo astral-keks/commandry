@@ -9,13 +9,13 @@ using System.CommandLine;
 
 RootCommand rootCommand = new()
 {
-    Description = "Starts MCP server on `http://localhost:<port>/sse`.",
+    Description = "Starts MCP server on `http://localhost:<port>`.",
 };
 
 Option<DirectoryInfo[]> scanDirectoryOption = new("--scan-directory")
 {
     Arity = ArgumentArity.OneOrMore,
-    Description = "Directory to scan for PowerShell scripts.",
+    Description = "Directory to scan for PowerShell scripts and modules.",
 };
 rootCommand.AddOption(scanDirectoryOption);
 
