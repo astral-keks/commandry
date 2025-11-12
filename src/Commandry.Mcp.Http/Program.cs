@@ -1,25 +1,28 @@
+using Commandry;
+using Commandry.Functions;
+using Commandry.Hosting;
 using Commandry.Mcp;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+using Commandry.Scripts;
+using ModelContextProtocol.Protocol;
+using ModelContextProtocol.Pwsh;
 using System.CommandLine;
-using System.IO;
 
 RootCommand rootCommand = new()
 {
-    Description = "Starts MCP server on `http://localhost:<port>/sse`.",
+    Description = "Starts MCP server on `http://localhost:<port>`.",
 };
 
 Option<DirectoryInfo[]> scanDirectoryOption = new("--scan-directory")
 {
     Arity = ArgumentArity.OneOrMore,
-    Description = "Directory to scan for PowerShell scripts with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.",
+    Description = "Directory to scan for PowerShell scripts and modules.",
 };
 rootCommand.AddOption(scanDirectoryOption);
 
 Option<string[]> moduleNameOption = new("--scan-module")
 {
     Arity = ArgumentArity.ZeroOrMore,
-    Description = "PowerShell module to scan for PowerShell functions with non-empty .DESCRIPTION and .ROLE set to 'MCP tool'.",
+    Description = "PowerShell module to scan for PowerShell functions.",
 };
 rootCommand.AddOption(moduleNameOption);
 
@@ -30,12 +33,34 @@ Option<int> portOption = new("--port", () => 3001)
 };
 rootCommand.AddOption(portOption);
 
+Option<LoggingLevel> logVerbosityOption = new("--log-verbosity", () => LoggingLevel.Info)
+{
+    Arity = ArgumentArity.ZeroOrOne,
+    Description = "Log verbosity.",
+};
+rootCommand.AddOption(logVerbosityOption);
 
-rootCommand.SetHandler(async (DirectoryInfo[] scanDirectories, string[] scanModules, int port) =>
+
+rootCommand.SetHandler(async (scanDirectories, scanModules, port, logVerbosity) =>
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    PwshRunspace pwshRunspace = new([ModelContextProtocolModule.Location]);
+    PwshScriptCommandSource pwshScriptCommandSource = new(pwshRunspace);
+    PwshFunctionCommandSource pwshFunctionCommandSource = new(pwshRunspace);
+
+    foreach (var scanDirectory in scanDirectories)
+    {
+        pwshScriptCommandSource.IncludeDirectory(scanDirectory);
+        pwshFunctionCommandSource.IncludeModules(scanDirectory);
+    }
+    foreach (var scanModule in scanModules)
+        pwshFunctionCommandSource.IncludeModule(scanModule);
+
+    CommandHost commandHost = new([pwshScriptCommandSource, pwshFunctionCommandSource]);
+
     builder.Services
-        .AddCommandHostMcpServer(scanDirectories, scanModules)
+        .AddCommandHostMcpServer(commandHost, logVerbosity)
         .WithHttpTransport();
 
     var app = builder.Build();
@@ -43,8 +68,6 @@ rootCommand.SetHandler(async (DirectoryInfo[] scanDirectories, string[] scanModu
     app.MapMcp();
 
     await app.RunAsync($"http://localhost:{port}");
-}, scanDirectoryOption, moduleNameOption, portOption);
+}, scanDirectoryOption, moduleNameOption, portOption, logVerbosityOption);
 
-await rootCommand.InvokeAsync(args);
-
-
+return await rootCommand.InvokeAsync(args);

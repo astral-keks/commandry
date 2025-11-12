@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Commandry
+﻿namespace Commandry
 {
     internal static class PwshHelp
     {

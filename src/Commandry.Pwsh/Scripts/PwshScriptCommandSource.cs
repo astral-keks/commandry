@@ -35,6 +35,6 @@ namespace Commandry.Scripts
             .SelectMany(directory => directory.EnumerateFiles("*.ps1", SearchOption.AllDirectories))
             .Select(ps1File => new PwshScriptCommand(_runspace, ps1File));
 
-        public override CommandWatch? WatchCommands() => new PwshWatch(_directories.Select(directory => directory.FullName), ["*.ps1"]);
+        public override CommandWatch? WatchCommands() => new PwshFsWatch(_directories.Select(directory => directory.FullName), ["*.ps1"]);
     }
 }

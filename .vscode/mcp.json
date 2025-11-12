@@ -1,0 +1,17 @@
+{
+	"servers": {
+		"commandry-stdio": {
+            "type": "stdio",
+            "command": "release\\commandry-mcp-stdio-win-x64\\commandry-mcp-stdio.exe",
+            "args": [
+                "--scan-directory",
+                "examples"
+            ]
+        },
+		"commandry-http": {
+			"type": "http",
+			"url": "http://localhost:3001"
+		}
+	},
+	"inputs": []
+}

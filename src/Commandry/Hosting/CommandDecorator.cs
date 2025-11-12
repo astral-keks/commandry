@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ namespace Commandry.Hosting
     {
         public override string Name => command.Name;
 
-        public override Dictionary<object, object?> Parameters
+        public override CommandParameters Parameters
         {
             get => command.Parameters;
             set => command.Parameters = value;
@@ -22,10 +21,22 @@ namespace Commandry.Hosting
             protected internal set => command.Result = value;
         }
 
+        public override CommandProgress? Progress
+        {
+            protected internal get => command.Progress;
+            set => command.Progress = value;
+        }
+
         public override ILogger? Logger
         {
             protected internal get => command.Logger;
             set => command.Logger = value;
+        }
+
+        public override IServiceProvider Services 
+        { 
+            get => command.Services; 
+            set => command.Services = value; 
         }
 
         public override Task<CommandMetadata> DescribeAsync(CancellationToken cancellation) => command.DescribeAsync(cancellation);

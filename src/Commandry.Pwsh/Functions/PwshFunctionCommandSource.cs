@@ -1,9 +1,4 @@
 ﻿using Commandry.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Management.Automation;
 
 namespace Commandry.Functions
@@ -59,7 +54,7 @@ namespace Commandry.Functions
 
         public override CommandWatch? WatchCommands()
         {
-            PwshWatch watch = new(_watchDirectories, ["*.psm1", "*.psd1"]);
+            PwshFsWatch watch = new(_watchDirectories, ["*.psm1", "*.psd1"]);
             watch.FileChanged += Watch_FileChanged;
             return watch;
         }

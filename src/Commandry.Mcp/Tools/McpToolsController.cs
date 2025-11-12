@@ -1,26 +1,31 @@
 ﻿using Commandry.Hosting;
+using Commandry.Mcp.Resources;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ModelContextProtocol.Protocol.Types;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using System.Collections;
 
 namespace Commandry.Mcp.Tools
 {
-    public class McpToolsController
+    internal class McpToolsController : IDisposable
     {
         private readonly CommandHost _commandHost;
-        private readonly McpToolsMapper _toolMapper;
-        private readonly McpPrimitiveMonitor<McpServerTool> _toolMonitor = new();
+        private readonly IMcpServer _mcpServer;
+        private readonly ILoggerProvider _loggerProvider;
+        private readonly ILogger _logger;
 
-        public McpToolsController(CommandHost commandHost, McpToolsMapper toolMapper)
+        public McpToolsController(CommandHost commandHost, IMcpServer mcpServer, ILoggerProvider loggerProvider)
         {
             _commandHost = commandHost;
-            _commandHost.WatchCommands((sender, args) => _toolMonitor.NotifyChanged());
-            
-            _toolMapper = toolMapper;
+            _mcpServer = mcpServer;
+            _loggerProvider = loggerProvider;
+            _logger = _loggerProvider.CreateLogger(nameof(McpResourcesController));
         }
 
-        public McpPrimitiveMonitor<McpServerTool> ToolMonitor => _toolMonitor;
+        public void Dispose()
+        {
+            _loggerProvider.Dispose();
+        }
 
         public async ValueTask<ListToolsResult> ListToolsAsync(CancellationToken cancellation)
         {
@@ -28,34 +33,42 @@ namespace Commandry.Mcp.Tools
 
             foreach (var command in _commandHost.GetCommands())
             {
-                CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
-                if (commandMetadata.HasProperty("Role", "MCP tool"))
+                try
                 {
-                    Tool tool = new()
+                    CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
+                    if (commandMetadata.IsTool())
                     {
-                        Name = commandMetadata.GetProperty(nameof(Tool.Name)) ?? commandMetadata.Name,
-                        Description = commandMetadata.Description,
-                        InputSchema = _toolMapper.ToJsonSchema(commandMetadata.Schema),
-                        Annotations = new()
+                        Tool tool = new()
                         {
-                            Title = commandMetadata.Title ?? commandMetadata.Name,
-                            IdempotentHint = commandMetadata.HasProperty(nameof(ToolAnnotations.IdempotentHint), bool.TrueString),
-                            DestructiveHint = commandMetadata.HasProperty(nameof(ToolAnnotations.DestructiveHint), bool.TrueString),
-                            OpenWorldHint = commandMetadata.HasProperty(nameof(ToolAnnotations.OpenWorldHint), bool.TrueString),
-                            ReadOnlyHint = commandMetadata.HasProperty(nameof(ToolAnnotations.ReadOnlyHint), bool.TrueString)
-                        }
-                    };
+                            Name = commandMetadata.GetProperty(nameof(Tool.Name)) ?? commandMetadata.Name,
+                            Description = commandMetadata.Description,
+                            InputSchema = commandMetadata.Schema.Parameters.ToJsonSchema(),
+                            OutputSchema = commandMetadata.Schema.Results.ToJsonSchema(),
+                            Annotations = new()
+                            {
+                                Title = commandMetadata.Title ?? commandMetadata.Name,
+                                IdempotentHint = commandMetadata.HasProperty(nameof(ToolAnnotations.IdempotentHint), bool.TrueString),
+                                DestructiveHint = commandMetadata.HasProperty(nameof(ToolAnnotations.DestructiveHint), bool.TrueString),
+                                OpenWorldHint = commandMetadata.HasProperty(nameof(ToolAnnotations.OpenWorldHint), bool.TrueString),
+                                ReadOnlyHint = commandMetadata.HasProperty(nameof(ToolAnnotations.ReadOnlyHint), bool.TrueString)
+                            }
+                        };
 
-                    result.Tools.Add(tool);
+                        result.Tools.Add(tool);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Unexpected error while getting tools");
                 }
             }
 
             return result;
         }
 
-        public async ValueTask<CallToolResponse> CallToolAsync(CallToolRequestParams? request, ILogger logger, CancellationToken cancellation)
+        public async ValueTask<CallToolResult> CallToolAsync(CallToolRequestParams? request, CancellationToken cancellation)
         {
-            CallToolResponse result;
+            CallToolResult result;
 
             try
             {
@@ -68,43 +81,36 @@ namespace Commandry.Mcp.Tools
                     throw new ArgumentException($"Tool {commandName} was not found");
 
                 CommandMetadata commandMetadata = await command.DescribeAsync(cancellation);
-                command.Parameters = _toolMapper.ToParameters(request?.Arguments, commandMetadata.Schema) ?? [];
-                command.Logger = logger;
+
+                command.Parameters = commandMetadata.Schema.DeserializeParameters(request.Arguments);
+                ServiceCollection services = [];
+                services.AddSingleton(_mcpServer);
+                command.Services = services.BuildServiceProvider();
+                command.Progress = new McpToolsProgress(_mcpServer, request.ProgressToken, cancellation);
+                command.Logger = _logger;
 
                 await command.ExecuteAsync(cancellation);
 
-                CommandResult? commandResult = command.Result;
-                if (commandResult?.Error is not null)
-                    throw commandResult.Error;
-
-                IEnumerable<Content>? results = commandResult?.Records
-                    .Where(record =>  record is not null)
-                    .Select(record =>
-                    {
-                        Content content = new();
-
-                        if (record is IDictionary dictionary)
-                            content = _toolMapper.ToContent(dictionary);
-                        else
-                        {
-                            content.Text = record?.ToString();
-                            content.Type = "text";
-                        }
-
-                        return content;
-                    });
-
+                CommandResult commandResult = command.Inspect();
                 result = new()
                 {
-                    Content = results is not null ? [.. results] : [],
-                    IsError = commandResult?.Error is not null
+                    Content = commandResult.Records
+                        .Where(record => record is not null && !commandMetadata.Schema.CanSerializeResult(record))
+                        .Select(record => record.ToContentBlock())
+                        .ToArray(),
+                    StructuredContent = commandResult.Records
+                        .Where(record => record is not null && commandMetadata.Schema.CanSerializeResult(record))
+                        .Select(record => commandMetadata.Schema.SerializeResult(record))
+                        .FirstOrDefault()
                 };
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Unexpected error while calling tool");
                 result = new()
                 {
-                    Content = [new() { Text = $"Error: {e.Message}", Type = "text" }]
+                    IsError = true,
+                    Content = [new TextContentBlock { Text = $"Error: {e.Message}", Type = "text" }]
                 };
             }
 

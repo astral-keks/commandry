@@ -1,6 +1,6 @@
 ﻿using Commandry.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,22 +13,34 @@ namespace Commandry
 
         public override string Name => _intent.Command;
 
-        public override Dictionary<object, object?> Parameters 
-        { 
-            get => _intent.Parameters; 
-            set => _intent.Parameters = value; 
+        public override CommandParameters Parameters
+        {
+            get => _intent.Parameters;
+            set => _intent.Parameters = value;
         }
 
-        public override CommandResult? Result 
-        { 
-            get => InnerCommand.Result; 
-            protected internal set => InnerCommand.Result = value; 
+        public override CommandResult? Result
+        {
+            get => InnerCommand.Result;
+            protected internal set => InnerCommand.Result = value;
+        }
+
+        public override CommandProgress? Progress
+        {
+            protected internal get => InnerCommand.Progress;
+            set => InnerCommand.Progress = value;
         }
 
         public override ILogger? Logger
         {
             protected internal get => InnerCommand.Logger;
             set => InnerCommand.Logger = value;
+        }
+
+        public override IServiceProvider Services 
+        { 
+            get => InnerCommand.Services; 
+            set => InnerCommand.Services = value; 
         }
 
         public override async Task ExecuteAsync(CancellationToken cancellation)

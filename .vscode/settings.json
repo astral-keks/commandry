@@ -1,0 +1,11 @@
+{
+    "chat.mcp.serverSampling": {
+        "commandry/.vscode/mcp.json: commandry-http": {
+            "allowedModels": [
+                "copilot/gpt-4.1",
+                "copilot/gpt-5-mini",
+                "copilot/grok-code-fast-1"
+            ]
+        }
+    }
+}

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using Commandry.Schemas;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +11,7 @@ namespace Commandry.Remoting
 
         public override string Name => _intent.Command;
 
-        public override Dictionary<object, object?> Parameters
+        public override CommandParameters Parameters
         {
             get => _intent.Parameters;
             set => _intent.Parameters = value;
